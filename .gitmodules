@@ -1,6 +1,12 @@
-[submodule "LIBRARIES/lodepng"]
-	path = LIBRARIES/lodepng
+[submodule "libs/lodepng"]
+	path = libs/lodepng
 	url = https://github.com/lvandeve/lodepng.git
-[submodule "LIBRARIES/argparse"]
-	path = LIBRARIES/argparse
+[submodule "libs/argparse"]
+	path = libs/argparse
 	url = https://github.com/p-ranav/argparse.git
+[submodule "libs/libtiff"]
+	path = libs/libtiff
+	url = https://gitlab.com/libtiff/libtiff.git
+[submodule "libs/glm"]
+	path = libs/glm
+	url = https://github.com/g-truc/glm.git

@@ -6,6 +6,9 @@
 #include "Types/Vector.h"
 #include "Types/Ant.h"
 
+
+#include <chrono>
+
 int main() {
 	/*
 		Most known:
@@ -26,22 +29,22 @@ int main() {
 		RLRRLRRLRRLR & RLC When initializing both ants at the center (+/- 1 pixel tolerance on the y axis) with the same direction a prism with complex patterns is made
 	*/
 
-	Vector2<SizeType> CanvasSize(65535, 65535);
+	Vector2<SizeType> CanvasSize(65536 / 2, 65536 / 2);
 	auto Center = CanvasSize / Vector2(2, 2);
 
-	SimulationState          Simulation = {};
+	SimulationState Simulation = {};
 	Encoding::PaletteManager Palette = {};
-	Encoding::EncoderState   Encoder = {};
-	
+	Encoding::EncoderState Encoder = {};
+
 	Simulation.Resize(CanvasSize);
 
-	Simulation.AddAnt(Ant(Center, Vector2<int8_t>(0, 1), Configs::ParseStateMachine("RLRRLRRLRRLR"), true));
-	Simulation.AddAnt(Ant(Center, Vector2<int8_t>(0, 1), Configs::ParseStateMachine("RLC"), true));
+	Simulation.InsertAnt(Ant(Center, Vector2<int8_t>(0, 1), Configs::ParseStateMachine("RLRRLRRLRRLR"), true));
+	Simulation.InsertAnt(Ant(Center, Vector2<int8_t>(0, 1), Configs::ParseStateMachine("RLC"), true));
 
 	Simulation.Reset();
 	Palette.ResizePalette(Simulation.PossibleStates);
-	
-	Encoder.Threads.ThreadCount = 32;
+
+	Encoder.Threads.ThreadCount = 1;
 	Encoder.Format = Encoding::ImageFormat::PNG_PALETTE;
 
 	// ffmpeg -r 60 -i "Frames/%d.png" -b:v 5M -c:v libx264 -preset veryslow -qp 0 output.mp4
@@ -51,29 +54,43 @@ int main() {
 	// ./LangtonsAnt | ~/ffmpeg/ffmpeg -y -f rawvideo -pix_fmt rgb24 -s 30720x30720 -r 30 -i - -c:v libx264 -preset veryslow -s 7680x7680 output.h264
 	// ./LangtonsAnt | ~/ffmpeg/ffmpeg -y -f rawvideo -pix_fmt rgb24 -s 1920x1920 -r 30 -i - -c:v libx264 -preset veryslow -s 1920x1920 output.h264
 
-	std::cout << "Ant state machines:\n";
+	std::cout << "State machines:\n";
 	for (auto& Ant : Simulation.TemplateAnts)
-		std::cout << '\t' << StateMachineToString(Ant.StateMachine) << '\n';
-	
+		std::cout << '\t' << DirectionsToString(Ant.state_machine) << '\n';
 
-	size_t Iterations = 32ull * 1000000000ull;
-	double FrameRate = 128.0; // Video frame rate
-	double Time = 1.0; // Video time
+	size_t Iterations = 64ull * 10000000ull;
+	double FrameRate = 64.0; // Video frame rate
+	double Time = 1.0;       // Video time
 	size_t Frames = size_t(Time * FrameRate);
-	
+
 	size_t CaptureDelta = size_t(double(Iterations) / double(Frames));
 
+	std::chrono::steady_clock::time_point StartTime = {};
+
 	for (size_t i = 0; i < Frames; i++) {
+		StartTime = std::chrono::high_resolution_clock::now();
 		size_t Result = Simulation.Simulate(CaptureDelta);
-		
+
 		std::cout
-		<< "Frame: " << i
-		<< " Iters: " << Result << '/' << CaptureDelta
-		<< " Active threads: " << Encoder.Threads.ActiveThreads()
-		<< '\n';
-		
+			<< "Frame: " << i
+			<< " Iters: " << Result << '/' << CaptureDelta
+			<< " Active threads: " << Encoder.Threads.ActiveThreads()
+			<< " Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - StartTime)
+			<< '\n';
+
+		/*
 		Encoder.EncodeAsync(Simulation, [&, i](const std::vector<uint8_t>& ImageData, const Vector2<SizeType>&, unsigned int) {
 			lodepng::save_file(ImageData, "frames/" + std::to_string(i) + ".png");
 		});
+		//*/
+		/*
+		Encoder.EncodeSync(Simulation, [&, i](const std::vector<uint8_t>& ImageData, const Vector2<SizeType>&, unsigned int) {
+			lodepng::save_file(ImageData, "frames/" + std::to_string(i) + ".png");
+		});
+		//*/
 	}
+
+	Encoder.EncodeSync(Simulation, [&](const std::vector<uint8_t>& ImageData, const Vector2<SizeType>&, unsigned int) {
+		lodepng::save_file(ImageData, "frames/" + std::to_string(-1) + ".png");
+	});
 }

@@ -37,7 +37,7 @@ namespace Configs {
 		}
 	};
 
-	enum class ParserStatus : uint8_t {
+	enum class ParserStatus : uint16_t {
 		OK = 0,
 		NO_MATCHES,
 		INVALID_FORMAT,
@@ -45,7 +45,7 @@ namespace Configs {
 		INVALID_FLAG
 	};
 
-	const char* ErrorCodes[] = {
+	std::string_view ParserStatusNames[] = {
 		"None",
 		"No matches",
 		"Invalid format",
@@ -53,15 +53,18 @@ namespace Configs {
 		"Invalid flag"
 	};
 
+	template<typename Type = ParserStatus>
+	inline std::string_view Error(Type Value) {
+		return ParserStatusNames[(int)Value];
+	}
+
 	std::optional<size_t> CharacterIndex(char Character, std::string_view Dictionary) {
 		auto Iterator = std::find(Dictionary.begin(), Dictionary.end(), Character);
 
-		if (Iterator != Dictionary.end()) {
+		if (Iterator != Dictionary.end())
 			return std::distance(Dictionary.begin(), Iterator);
-		}
-		else {
+		else
 			return std::nullopt;
-		}
 	}
 
 	ParserStatus ParseTiming(const std::string& String, Timing* Condition) {
@@ -83,11 +86,11 @@ namespace Configs {
 
 		if (!std::regex_match(String, Matches, std::regex("^(.)(\\d+)(.?)")))
 			return ParserStatus::INVALID_FORMAT;
-		
+
 		auto Multiplier = Matches[3].str();
-		auto Value      = (size_t)std::stoi(Matches[2].str());
-		auto Type       = Matches[1].str();
-		
+		auto Value = (size_t)std::stoi(Matches[2].str());
+		auto Type = Matches[1].str();
+
 		if (Type == "i" || Type == "I") {
 			size_t MultiplierValue = 1;
 
@@ -131,7 +134,7 @@ namespace Configs {
 
 		for (auto Character : String) {
 			if (Direction != 0) {
-				const uint8_t c_SkipSize[] = { 1, 1, 2 }; // How many characters to skip
+				const uint8_t c_SkipSize[] = {1, 1, 2};        // How many characters to skip
 				auto Index = CharacterIndex(Character, "491"); // 45, 90, 135
 
 				if (Index) {
@@ -146,19 +149,26 @@ namespace Configs {
 				Direction = 0; // Stop parsing direction
 			}
 
-			if (Skip > 0) { Skip--; continue; }
-			
+			if (Skip > 0) {
+				Skip--;
+				continue;
+			}
+
 			// Parse command
 			switch (Character) {
 				case 'R':
-					Direction =  1; break; // Prepare to parse right direction
+					Direction = 1;
+					break; // Prepare to parse right direction
 				case 'L':
-					Direction = -1; break; // Prepare to parse left direction
+					Direction = -1;
+					break; // Prepare to parse left direction
 				case 'U':
-					Result.push_back(DirectionEnum::U); break;
+					Result.push_back(DirectionEnum::U);
+					break;
 				case 'C':
-					Result.push_back(DirectionEnum::C); break;
-				
+					Result.push_back(DirectionEnum::C);
+					break;
+
 				default:
 					break;
 			}
@@ -166,7 +176,7 @@ namespace Configs {
 
 		if (Direction != 0)
 			Result.push_back(DirectionEnum(2 * Direction));
-		
+
 		return Result;
 	}
 
@@ -179,7 +189,7 @@ namespace Configs {
 
 		if (Matches.size() != 3)
 			return ParserStatus::INVALID_FORMAT;
-		
+
 		Vector->X = (Type)std::stoi(Matches[1].str());
 		Vector->Y = (Type)std::stoi(Matches[2].str());
 
@@ -190,8 +200,9 @@ namespace Configs {
 		for (auto Flag : String) {
 			switch (Flag) {
 				case 'W':
-					AntObject.Wrap = true; break;
-				
+					AntObject.wrap = true;
+					break;
+
 				default:
 					return ParserStatus::INVALID_FLAG;
 			}
@@ -202,10 +213,10 @@ namespace Configs {
 
 	ParserStatus ParseAnt(const std::string& String, const std::vector<std::vector<DirectionEnum>>& StateMachines, Ant& AntObject) {
 		std::smatch Matches;
-		
+
 		if (!std::regex_match(String, Matches, std::regex(R"((.)\(([\w\s,+-]*?)\))")))
 			return ParserStatus::NO_MATCHES;
-		
+
 		if (Matches.size() % 3 != 0)
 			return ParserStatus::INVALID_FORMAT;
 
@@ -216,37 +227,40 @@ namespace Configs {
 
 			switch (Matches[i + 1].str().at(0)) {
 				case 'P': // Position
-					Result = ParseVector2(Value, &AntObject.Position); break;
+					Result = ParseVector2(Value, &AntObject.position_curr);
+					break;
 
 				case 'D': // Direction
-					Result = ParseVector2(Value, &AntObject.Direction); break;
-				
+					Result = ParseVector2(Value, &AntObject.direction);
+					break;
+
 				case 'F': // Flags
-					Result = ParseFlags(Value, AntObject); break;
+					Result = ParseFlags(Value, AntObject);
+					break;
 
 				case 'M': { // State machine
 					if (std::regex_match(Value, std::regex("\\d+"))) {
 						auto Index = (size_t)std::stoi(Value);
 						if (Index + 1 >= StateMachines.size())
 							return ParserStatus::INVALID_FORMAT;
-						
-						AntObject.StateMachine = StateMachines[Index];
+
+						AntObject.state_machine = StateMachines[Index];
 					}
 					else // Is the state machine a list?
-						AntObject.StateMachine = ParseStateMachine(Value);
-					
+						AntObject.state_machine = ParseStateMachine(Value);
+
 					break;
 				}
 
 				case 'S': { // Step size
 					if (std::regex_match(Value, std::regex("\\d+")))
-						AntObject.StepSize = std::stoi(Value);
+						AntObject.step_length = std::stoi(Value);
 					else
 						return ParserStatus::INVALID_FORMAT;
-					
+
 					break;
 				}
-				
+
 				default:
 					break;
 			}
@@ -254,7 +268,7 @@ namespace Configs {
 			if (Result != ParserStatus::OK)
 				return Result;
 		}
-		
+
 		return ParserStatus::OK;
 	}
 
@@ -270,10 +284,10 @@ namespace Configs {
 				Ants.push_back(AntObject);
 			else
 				return Result;
-			
+
 			String.erase(0, Position + 1);
 		}
-		
+
 		return ParserStatus::OK;
 	}
 
@@ -286,7 +300,7 @@ namespace Configs {
 		}
 
 		StateMachines.push_back(ParseStateMachine(String.substr(0, String.size())));
-		
+
 		return ParserStatus::OK;
 	}
 }

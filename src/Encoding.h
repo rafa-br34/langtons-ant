@@ -28,7 +28,7 @@ namespace Encoding {
 		operator uint32_t() const { return Color; }
 	};
 
-	typedef RGBA32(* ColorDescriptor)(size_t);
+	typedef RGBA32 (*ColorDescriptor)(size_t);
 
 	class PaletteManager {
 	private:
@@ -40,7 +40,7 @@ namespace Encoding {
 			auto I = uint32_t(Index);
 			XOR_SHIFT32(I);
 			I *= 0x9E3779B9;
-			return { ((I & 0x00FF0000) >> 16) | (I & 0x0000FF00) | ((I & 0x000000FF) << 16) | (I & 0xFF000000) };
+			return {((I & 0x00FF0000) >> 16) | (I & 0x0000FF00) | ((I & 0x000000FF) << 16) | (I & 0xFF000000)};
 		};
 
 		void ResizePalette(size_t StateCount) {
@@ -53,7 +53,7 @@ namespace Encoding {
 			if (StateCount <= CacheSize) {
 				if (CacheSize - StateCount > CacheSize * 2) // Resize the cache if it's more than 2x bigger
 					m_Palette.resize(StateCount);
-				
+
 				return;
 			}
 
@@ -85,8 +85,8 @@ namespace Encoding {
 	class ThreadManager {
 	private:
 		std::condition_variable m_ThreadsSignal = {};
-		std::atomic<size_t>     m_ThreadsActive = 0; // @todo std::atomic might not be required because of m_ThreadsLock and m_ThreadsSignal
-		std::mutex              m_ThreadsLock = {};
+		std::atomic<size_t> m_ThreadsActive = 0; // @todo std::atomic might not be required because of m_ThreadsLock and m_ThreadsSignal
+		std::mutex m_ThreadsLock = {};
 
 	public:
 		size_t ThreadCount = 0;
@@ -95,7 +95,7 @@ namespace Encoding {
 			std::unique_lock<std::mutex> Lock(m_ThreadsLock);
 			while (ThreadCount > 0 && m_ThreadsActive >= ThreadCount)
 				m_ThreadsSignal.wait(Lock);
-			
+
 			m_ThreadsActive++;
 			DEBUG_PRINT("Acquired thread (%d active)\n", (int)m_ThreadsActive);
 		}
@@ -132,10 +132,14 @@ namespace Encoding {
 			lodepng_state_init(&State);
 
 			LodePNGColorType ColorType;
-			
+
 			switch (Format) {
-				case ImageFormat::PNG_PALETTE:   ColorType = LCT_PALETTE; break;
-				case ImageFormat::PNG_GRAYSCALE: ColorType = LCT_GREY; break;
+				case ImageFormat::PNG_PALETTE:
+					ColorType = LCT_PALETTE;
+					break;
+				case ImageFormat::PNG_GRAYSCALE:
+					ColorType = LCT_GREY;
+					break;
 
 				default: {
 					DEBUG_PRINT("Unknown data format %d, ColorType will be set to LCT_GREY\n", (int)Format);
@@ -146,10 +150,10 @@ namespace Encoding {
 
 			State.info_png.color.colortype = ColorType;
 			State.info_raw.colortype = ColorType;
-			
+
 			State.info_png.color.bitdepth = BitDepth;
 			State.info_raw.bitdepth = BitDepth;
-			
+
 			State.encoder.auto_convert = 0;
 
 			if (Format != ImageFormat::PNG_PALETTE) return State;
@@ -172,7 +176,7 @@ namespace Encoding {
 		void m_EncodeBuffer(const CellType* Grid, const Vector2<SizeType>& Size, size_t StateCount, Function Callback) {
 			std::vector<uint8_t> ImageData = {};
 			lodepng::State State = m_SetupEncoderState(StateCount, 8);
-			
+
 			unsigned int Result = lodepng::encode(ImageData, (const unsigned char*)Grid, (unsigned int)Size.X, (unsigned int)Size.Y, State);
 
 			ASSERT_MSG(Result == 0, "lodepng::encode -> %d\n", Result);
@@ -182,8 +186,8 @@ namespace Encoding {
 
 	public:
 		PaletteManager Palette = {};
-		ThreadManager  Threads = {};
-		
+		ThreadManager Threads = {};
+
 		ImageFormat Format = ImageFormat::PNG_PALETTE;
 
 		template<typename Function>
@@ -212,7 +216,7 @@ namespace Encoding {
 		void EncodeAsync(const SimulationState& State, Function Callback) {
 			auto GridCopy = std::make_shared<std::vector<CellType>>();
 			auto GridSize = State.CanvasSize;
-			
+
 			GridCopy->assign(State.CanvasPointer, State.CanvasPointer + GridSize.X * GridSize.Y);
 
 			Threads.AcquireThread();

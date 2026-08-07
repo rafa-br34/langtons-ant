@@ -13,12 +13,14 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_GENERATOR_PLATFORM x64)
+#set(CMAKE_GENERATOR_PLATFORM x64)
 set(CMAKE_CXX_STANDARD 20)
 
 
-include("CMake/Lib_lodepng.cmake")
-include("CMake/Lib_argparse.cmake")
+include("CMake/lib_lodepng.cmake")
+include("CMake/lib_libtiff.cmake")
+include("CMake/lib_argparse.cmake")
+include("CMake/lib_glm.cmake")
 
 if(MSVC)
 	add_compile_options(/W4)
@@ -26,5 +28,5 @@ else()
 	add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-add_executable(Interface SOURCE/Interface.cpp ${COMMON_SOURCES})
-add_executable(Direct SOURCE/Direct.cpp ${COMMON_SOURCES})
+add_executable(Interface src/Interface.cpp ${COMMON_SOURCES})
+add_executable(Direct src/Direct.cpp ${COMMON_SOURCES})

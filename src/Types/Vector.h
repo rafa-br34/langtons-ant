@@ -5,8 +5,8 @@ struct Vector2 {
 	Type X;
 	Type Y;
 
-
 	// Operator overloads
+	// clang-format off
 	template<typename T> Vector2 operator+(const Vector2<T>& Other) const { return Vector2<Type>(X + Other.X, Y + Other.Y); }
 	template<typename T> Vector2 operator-(const Vector2<T>& Other) const { return Vector2<Type>(X - Other.X, Y - Other.Y); }
 	template<typename T> Vector2 operator*(const Vector2<T>& Other) const { return Vector2<Type>(X * Other.X, Y * Other.Y); }
@@ -33,6 +33,7 @@ struct Vector2 {
 
 	template<typename T> bool operator==(const Vector2<T>& Other) { return X == Other.X && Y == Other.Y; }
 	template<typename T> bool operator!=(const Vector2<T>& Other) { return X != Other.X || Y != Other.Y; }
+	// clang-format on
 
 	Vector2(Type X, Type Y) : X(X), Y(Y) {}
 	Vector2() = default;
