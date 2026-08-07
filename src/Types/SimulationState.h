@@ -13,99 +13,99 @@
 
 class SimulationState {
 private:
-	void m_Deallocate() {
-		if (CanvasPointer) {
-			delete[] CanvasPointer;
-			CanvasPointer = nullptr;
+	void m_deallocate() {
+		if (canvas_pointer != nullptr) {
+			delete[] canvas_pointer;
+			canvas_pointer = nullptr;
 		}
 	}
 
-	void m_Allocate() {
-		if (!CanvasPointer)
-			CanvasPointer = new CellType[CanvasSize.x * CanvasSize.y]{};
+	void m_allocate() {
+		if (canvas_pointer == nullptr)
+			canvas_pointer = new CellType[canvas_size.x * canvas_size.y]{};
 	}
 
 public:
-	std::vector<Ant> TemplateAnts = {};
-	std::vector<Ant> Ants = {};
+	std::vector<Ant> ant_templates;
+	std::vector<Ant> ant_list;
 
-	uint8_t* CanvasPointer = nullptr;
-	glm::i64vec2 CanvasSize = {0, 0};
+	uint8_t* canvas_pointer = nullptr;
+	glm::i64vec2 canvas_size = {0, 0};
 
-	CellType PossibleStates = 0;
+	CellType possible_states = 0;
 
-	void InsertAnt(const Ant& AntObject) {
-		TemplateAnts.push_back(AntObject);
-		PossibleStates = std::max(PossibleStates, (CellType)AntObject.state_machine.size());
+	void insert_ant(const Ant& ant_object) {
+		ant_templates.push_back(ant_object);
+		possible_states = std::max(possible_states, (CellType)ant_object.state_machine.size());
 	}
 
-	void UpdateStats() {
-		PossibleStates = 0;
+	void update_stats() {
+		possible_states = 0;
 
-		for (auto& AntObject : TemplateAnts)
-			PossibleStates = std::max(PossibleStates, (CellType)AntObject.state_machine.size());
+		for (auto& ant_object : ant_templates)
+			possible_states = std::max(possible_states, (CellType)ant_object.state_machine.size());
 	}
 
-	void Resize(const glm::i64vec2& Size) {
-		if (CanvasSize != Size)
-			m_Deallocate();
+	void resize(const glm::i64vec2& size) {
+		if (canvas_size != size)
+			m_deallocate();
 
-		CanvasSize = Size;
-		m_Allocate();
+		canvas_size = size;
+		m_allocate();
 	}
 
-	size_t Simulate(size_t IterationLimit = 1) {
-		if (Ants.empty())
+	size_t simulate(size_t iteration_limit = 1) {
+		if (ant_list.empty())
 			return 0;
 
-		size_t Iterations = 0;
+		size_t iterations = 0;
 
-		if (Ants.size() == 1) {
-			for (; Iterations < IterationLimit; Iterations++) {
-				if (!Ants[0].singlestep_update(CanvasPointer, CanvasSize)) {
-					Ants.clear();
+		if (ant_list.size() == 1) {
+			for (; iterations < iteration_limit; iterations++) {
+				if (!ant_list[0].singlestep_update(canvas_pointer, canvas_size)) {
+					ant_list.clear();
 					break;
 				}
 			}
 		}
 		else {
-			for (; Iterations < IterationLimit; Iterations++) {
+			for (; iterations < iteration_limit; iterations++) {
 				// Update positions
-				for (auto& AntObject : Ants)
-					AntObject.doublestep_update_pos(CanvasPointer, CanvasSize);
+				for (auto& ant_object : ant_list)
+					ant_object.doublestep_update_pos(canvas_pointer, canvas_size);
 
 				// Update cells & Remove dead ants
-				Ants.erase(
+				ant_list.erase(
 					std::remove_if(
-						Ants.begin(),
-						Ants.end(),
-						[&](auto& AntObject) { return !AntObject.doublestep_update_cell(CanvasPointer, CanvasSize); }
+						ant_list.begin(),
+						ant_list.end(),
+						[&](auto& ant_object) { return !ant_object.doublestep_update_cell(canvas_pointer, canvas_size); }
 					),
-					Ants.end()
+					ant_list.end()
 				);
 
-				if (Ants.empty())
+				if (ant_list.empty())
 					break;
 			}
 		}
 
-		return Iterations;
+		return iterations;
 	}
 
-	void Reset(bool ResetCanvas = true, bool ResetAnts = true) {
-		m_Allocate();
+	void reset(bool reset_canvas = true, bool reset_ants = true) {
+		m_allocate();
 
-		if (ResetCanvas)
-			std::memset(CanvasPointer, 0, CanvasSize.x * CanvasSize.y);
+		if (reset_canvas)
+			std::memset(canvas_pointer, 0, canvas_size.x * canvas_size.y);
 
-		if (ResetAnts) {
-			Ants.clear();
-			Ants.insert(Ants.end(), TemplateAnts.begin(), TemplateAnts.end());
+		if (reset_ants) {
+			ant_list.clear();
+			ant_list.insert(ant_list.end(), ant_templates.begin(), ant_templates.end());
 		}
 	}
 
 	SimulationState() = default;
-	SimulationState(const glm::i64vec2& Size) { Resize(Size); }
+	SimulationState(const glm::i64vec2& size) { resize(size); }
 
-	virtual ~SimulationState() { m_Deallocate(); }
+	virtual ~SimulationState() { m_deallocate(); }
 };

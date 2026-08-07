@@ -63,4 +63,4 @@ CheckOptions:
 
   # Namespaces
   - key: readability-identifier-naming.NamespaceCase
-    value: lower_case
+    value: CamelCase

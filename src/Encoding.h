@@ -192,7 +192,7 @@ namespace Encoding {
 
 		template<typename Function>
 		void EncodeSync(const SimulationState& State, Function Callback) {
-			m_EncodeBuffer(State.CanvasPointer, State.CanvasSize, State.PossibleStates, Callback);
+			m_EncodeBuffer(State.canvas_pointer, State.canvas_size, State.possible_states, Callback);
 		}
 
 		template<typename Function>
@@ -200,7 +200,7 @@ namespace Encoding {
 			std::vector<CellType> Section(SectionSize.x * SectionSize.y);
 
 			for (SizeType Y = 0; Y < SectionSize.y; Y++) {
-				auto RowStart = State.CanvasPointer + FLATTEN_2D(SectionPosition.x, SectionPosition.y + Y, State.CanvasSize.x);
+				auto RowStart = State.canvas_pointer + FLATTEN_2D(SectionPosition.x, SectionPosition.y + Y, State.canvas_size.x);
 
 				std::copy(
 					RowStart,
@@ -209,18 +209,18 @@ namespace Encoding {
 				);
 			}
 
-			return m_EncodeBuffer(Section.data(), SectionSize, State.PossibleStates, Callback);
+			return m_EncodeBuffer(Section.data(), SectionSize, State.possible_states, Callback);
 		}
 
 		template<typename Function>
 		void EncodeAsync(const SimulationState& State, Function Callback) {
 			auto GridCopy = std::make_shared<std::vector<CellType>>();
-			auto GridSize = State.CanvasSize;
+			auto GridSize = State.canvas_size;
 
-			GridCopy->assign(State.CanvasPointer, State.CanvasPointer + GridSize.x * GridSize.y);
+			GridCopy->assign(State.canvas_pointer, State.canvas_pointer + GridSize.x * GridSize.y);
 
 			Threads.AcquireThread();
-			std::thread([&, GridCopy, GridSize, States = State.PossibleStates, Callback]() {
+			std::thread([&, GridCopy, GridSize, States = State.possible_states, Callback]() {
 				m_EncodeBuffer(GridCopy->data(), GridSize, States, Callback);
 				Threads.ReleaseThread();
 			}).detach();
@@ -231,7 +231,7 @@ namespace Encoding {
 			auto Section = std::make_shared<std::vector<CellType>>(SectionSize.x * SectionSize.y);
 
 			for (SizeType Y = 0; Y < SectionSize.y; Y++) {
-				auto RowStart = State.CanvasPointer + FLATTEN_2D(SectionPosition.x, SectionPosition.y + Y, State.CanvasSize.x);
+				auto RowStart = State.canvas_pointer + FLATTEN_2D(SectionPosition.x, SectionPosition.y + Y, State.canvas_size.x);
 
 				std::copy(
 					RowStart,
@@ -241,7 +241,7 @@ namespace Encoding {
 			}
 
 			Threads.AcquireThread();
-			std::thread([&, Section, SectionSize, States = State.PossibleStates, Callback]() {
+			std::thread([&, Section, SectionSize, States = State.possible_states, Callback]() {
 				m_EncodeBuffer(Section->data(), SectionSize, States, Callback);
 				Threads.ReleaseThread();
 			}).detach();

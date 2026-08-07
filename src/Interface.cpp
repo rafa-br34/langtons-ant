@@ -87,7 +87,7 @@ int main(int argc, const char* argv[]) {
 		argument_parser.get<SizeType>("-y")
 	);
 
-	simulation.Resize({
+	simulation.resize({
 		argument_parser.get<SizeType>("-x"),
 		argument_parser.get<SizeType>("-y"),
 	});
@@ -97,13 +97,13 @@ int main(int argc, const char* argv[]) {
 	Configs::ParserStatus result = Configs::ParserStatus::OK;
 
 	for (auto& fsm_string : argument_parser.get<std::vector<std::string>>("-m")) {
-		result = Configs::ParseStateMachines(
+		result = Configs::parse_state_machines(
 			fsm_string,
 			fsm_list
 		);
 
 		if (result != Configs::ParserStatus::OK) {
-			std::cerr << "Failed to parse state machine \"" << fsm_string << "\" with status " << Configs::Error(result) << '\n';
+			std::cerr << "Failed to parse state machine \"" << fsm_string << "\" with status " << Configs::error_str(result) << '\n';
 			return 1;
 		}
 	}
@@ -113,14 +113,14 @@ int main(int argc, const char* argv[]) {
 		std::printf("\t%s\n", directions_to_string(fsm).c_str());
 
 	for (auto& fsm_string : argument_parser.get<std::vector<std::string>>("-a")) {
-		result = Configs::ParseAnts(
+		result = Configs::parse_ants(
 			fsm_string,
 			fsm_list,
-			simulation.TemplateAnts
+			simulation.ant_templates
 		);
 
 		if (result != Configs::ParserStatus::OK) {
-			std::cerr << "Failed to parse ant \"" << fsm_string << "\" with status " << Configs::Error(result) << '\n';
+			std::cerr << "Failed to parse ant \"" << fsm_string << "\" with status " << Configs::error_str(result) << '\n';
 			return 1;
 		}
 	}
@@ -129,14 +129,14 @@ int main(int argc, const char* argv[]) {
 
 	size_t save_iters = argument_parser.get<size_t>("-s");
 
-	result = Configs::ParseTiming(argument_parser.get<std::string>("-i"), &eval_condition);
+	result = Configs::parse_timing(argument_parser.get<std::string>("-i"), &eval_condition);
 
 	if (result != Configs::ParserStatus::OK) {
-		std::cerr << "Failed to parse evaluation condition with status " << Configs::Error(result) << '\n';
+		std::cerr << "Failed to parse evaluation condition with status " << Configs::error_str(result) << '\n';
 		return 1;
 	}
 
-	simulation.Reset();
+	simulation.reset();
 
 	size_t iterations = 0;
 
