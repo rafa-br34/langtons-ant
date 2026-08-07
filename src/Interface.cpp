@@ -19,7 +19,6 @@
 #include "Common.h"
 
 #include "Types/SimulationState.h"
-#include "Types/Vector.h"
 #include "Types/Ant.h"
 
 

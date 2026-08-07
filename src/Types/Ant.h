@@ -6,10 +6,9 @@
 #include <vector>
 #include <string>
 
-#include "glm/vec2.hpp"
+#include "glm/ext/vector_int2_sized.hpp"
 
 #include "Direction.h"
-#include "Vector.h"
 
 
 // Index after flattening
@@ -41,9 +40,9 @@ constexpr int_fast8_t ROT_2_IDX[] = {
 
 class Ant {
 public:
-	Vector2<SizeType> position_prev = {};
-	Vector2<SizeType> position_curr = {};
-	Vector2<int_fast8_t> direction = {};
+	glm::i64vec2 position_prev = glm::i64vec2(0);
+	glm::i64vec2 position_curr = glm::i64vec2(0);
+	glm::i8vec2 direction = glm::i8vec2(0);
 
 	SizeType step_length = 1;
 	bool wrap = false;
@@ -52,42 +51,42 @@ public:
 
 	void rotate(int_fast8_t rotation) {
 		// Decode direction vector and add 4 to ensure it's above zero
-		int_fast8_t direction_index = (3 * direction.Y + direction.X) + 4;
+		int_fast8_t direction_index = (3 * direction.y + direction.x) + 4;
 
 		// Finally add the rotation and mod 8
 		direction_index = (ROT_2_IDX[direction_index] + rotation + 8) & 7;
 
-		direction.X = IDX_2_DIR[direction_index * 2 + 0];
-		direction.Y = IDX_2_DIR[direction_index * 2 + 1];
+		direction.x = IDX_2_DIR[direction_index * 2 + 0];
+		direction.y = IDX_2_DIR[direction_index * 2 + 1];
 	}
 
-	bool validate_position(const Vector2<SizeType>& grid_size) const {
-		return position_curr.X < grid_size.X && position_curr.Y < grid_size.Y && position_curr.X >= 0 && position_curr.Y >= 0;
+	bool validate_position(const glm::i64vec2& grid_size) const {
+		return position_curr.x < grid_size.x && position_curr.y < grid_size.y && position_curr.x >= 0 && position_curr.y >= 0;
 	}
 
-	void wrap_position(const Vector2<SizeType>& grid_size) {
-		if (position_curr.X >= grid_size.X)
-			position_curr.X = 0;
+	void wrap_position(const glm::i64vec2& grid_size) {
+		if (position_curr.x >= grid_size.x)
+			position_curr.x = 0;
 
-		if (position_curr.Y >= grid_size.Y)
-			position_curr.Y = 0;
+		if (position_curr.y >= grid_size.y)
+			position_curr.y = 0;
 
-		if (position_curr.X < 0)
-			position_curr.X = grid_size.X - 1;
+		if (position_curr.x < 0)
+			position_curr.x = grid_size.x - 1;
 
-		if (position_curr.Y < 0)
-			position_curr.Y = grid_size.Y - 1;
+		if (position_curr.y < 0)
+			position_curr.y = grid_size.y - 1;
 	}
 
 	// Single step update (used for a single ant)
-	bool singlestep_update(CellType* grid, const Vector2<SizeType>& grid_size) {
+	bool singlestep_update(CellType* grid, const glm::i64vec2& grid_size) {
 		if (!validate_position(grid_size))
 			return false;
 
-		CellType* cell = grid + FLATTEN_2D(position_curr.X, position_curr.Y, grid_size.X);
+		CellType* cell = grid + FLATTEN_2D(position_curr.x, position_curr.y, grid_size.x);
 
 		rotate((int8_t)state_machine[*cell % state_machine.size()]);
-		position_curr += direction * step_length;
+		position_curr += glm::i64vec2(direction) * step_length;
 
 		*cell = (*cell + 1) % state_machine.size();
 
@@ -98,22 +97,22 @@ public:
 	}
 
 	// Double step update (used for multiple ants)
-	void doublestep_update_pos(const CellType* grid, const Vector2<SizeType>& grid_size) {
-		CellType cell_state = grid[FLATTEN_2D(position_curr.X, position_curr.Y, grid_size.X)];
+	void doublestep_update_pos(const CellType* grid, const glm::i64vec2& grid_size) {
+		CellType cell_state = grid[FLATTEN_2D(position_curr.x, position_curr.y, grid_size.x)];
 
 		rotate((int8_t)state_machine[cell_state % state_machine.size()]);
 		position_prev = position_curr;
-		position_curr += direction * step_length;
+		position_curr += glm::i64vec2(direction) * step_length;
 
 		if (wrap)
 			wrap_position(grid_size);
 	}
 
-	bool doublestep_update_cell(CellType* grid, const Vector2<SizeType>& grid_size) const {
+	bool doublestep_update_cell(CellType* grid, const glm::i64vec2& grid_size) const {
 		if (!validate_position(grid_size))
 			return false;
 
-		CellType* cell = grid + FLATTEN_2D(position_prev.X, position_prev.Y, grid_size.X);
+		CellType* cell = grid + FLATTEN_2D(position_prev.x, position_prev.y, grid_size.x);
 		*cell = (*cell + 1) % state_machine.size();
 
 		return true;
@@ -122,7 +121,7 @@ public:
 	Ant(SizeType x, SizeType y, int8_t dx, int8_t dy, std::vector<DirectionEnum> state_machine, bool wrap = false, SizeType step_size = 1)
 		: position_curr(x, y), direction(dx, dy), step_length(step_size), wrap(wrap), state_machine(state_machine) {}
 
-	Ant(Vector2<SizeType> position, Vector2<int8_t> direction, std::vector<DirectionEnum> state_machine, bool wrap = false, SizeType step_size = 1)
+	Ant(glm::i64vec2 position, glm::i8vec2 direction, std::vector<DirectionEnum> state_machine, bool wrap = false, SizeType step_size = 1)
 		: position_curr(position), direction(direction), step_length(step_size), wrap(wrap), state_machine(state_machine) {}
 
 	Ant() = default;

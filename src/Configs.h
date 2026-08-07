@@ -9,7 +9,6 @@
 
 #include <argparse/argparse.hpp>
 
-#include "Types/Vector.h"
 #include "Types/Ant.h"
 
 
@@ -180,8 +179,8 @@ namespace Configs {
 		return Result;
 	}
 
-	template<typename Type>
-	ParserStatus ParseVector2(const std::string& String, Vector2<Type>* Vector) {
+	template<typename VectorType>
+	ParserStatus ParseVector2(const std::string& String, VectorType* Vector) {
 		std::smatch Matches;
 
 		if (!std::regex_match(String, Matches, std::regex(R"((-?\d+)\s*,\s*(-?\d+))")))
@@ -190,8 +189,8 @@ namespace Configs {
 		if (Matches.size() != 3)
 			return ParserStatus::INVALID_FORMAT;
 
-		Vector->X = (Type)std::stoi(Matches[1].str());
-		Vector->Y = (Type)std::stoi(Matches[2].str());
+		Vector->x = (typename VectorType::value_type)std::stoi(Matches[1].str());
+		Vector->y = (typename VectorType::value_type)std::stoi(Matches[2].str());
 
 		return ParserStatus::OK;
 	}

@@ -8,7 +8,7 @@
 
 #include <lodepng.h>
 
-#include "Vector.h"
+#include "glm/ext/vector_int2_sized.hpp"
 #include "Ant.h"
 
 class SimulationState {
@@ -22,7 +22,7 @@ private:
 
 	void m_Allocate() {
 		if (!CanvasPointer)
-			CanvasPointer = new CellType[CanvasSize.X * CanvasSize.Y]{};
+			CanvasPointer = new CellType[CanvasSize.x * CanvasSize.y]{};
 	}
 
 public:
@@ -30,7 +30,7 @@ public:
 	std::vector<Ant> Ants = {};
 
 	uint8_t* CanvasPointer = nullptr;
-	Vector2<SizeType> CanvasSize = {0, 0};
+	glm::i64vec2 CanvasSize = {0, 0};
 
 	CellType PossibleStates = 0;
 
@@ -46,7 +46,7 @@ public:
 			PossibleStates = std::max(PossibleStates, (CellType)AntObject.state_machine.size());
 	}
 
-	void Resize(const Vector2<SizeType>& Size) {
+	void Resize(const glm::i64vec2& Size) {
 		if (CanvasSize != Size)
 			m_Deallocate();
 
@@ -96,7 +96,7 @@ public:
 		m_Allocate();
 
 		if (ResetCanvas)
-			std::memset(CanvasPointer, 0, CanvasSize.X * CanvasSize.Y);
+			std::memset(CanvasPointer, 0, CanvasSize.x * CanvasSize.y);
 
 		if (ResetAnts) {
 			Ants.clear();
@@ -105,7 +105,7 @@ public:
 	}
 
 	SimulationState() = default;
-	SimulationState(const Vector2<SizeType>& Size) { Resize(Size); }
+	SimulationState(const glm::i64vec2& Size) { Resize(Size); }
 
 	virtual ~SimulationState() { m_Deallocate(); }
 };

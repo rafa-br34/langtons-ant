@@ -14,7 +14,7 @@
 #include <lodepng.h>
 
 #include "Types/SimulationState.h"
-#include "Types/Vector.h"
+#include "glm/ext/vector_int2_sized.hpp"
 #include "Types/Ant.h"
 
 namespace Encoding {
@@ -173,15 +173,15 @@ namespace Encoding {
 
 
 		template<typename Function>
-		void m_EncodeBuffer(const CellType* Grid, const Vector2<SizeType>& Size, size_t StateCount, Function Callback) {
+		void m_EncodeBuffer(const CellType* Grid, const glm::i64vec2& Size, size_t StateCount, Function Callback) {
 			std::vector<uint8_t> ImageData = {};
 			lodepng::State State = m_SetupEncoderState(StateCount, 8);
 
-			unsigned int Result = lodepng::encode(ImageData, (const unsigned char*)Grid, (unsigned int)Size.X, (unsigned int)Size.Y, State);
+			unsigned int Result = lodepng::encode(ImageData, (const unsigned char*)Grid, (unsigned int)Size.x, (unsigned int)Size.y, State);
 
 			ASSERT_MSG(Result == 0, "lodepng::encode -> %d\n", Result);
 
-			Callback(ImageData, Vector2<SizeType>(Size.X, Size.Y), Result);
+			Callback(ImageData, glm::i64vec2(Size.x, Size.y), Result);
 		}
 
 	public:
@@ -196,16 +196,16 @@ namespace Encoding {
 		}
 
 		template<typename Function>
-		void EncodeSync(const SimulationState& State, const Vector2<SizeType>& SectionPosition, const Vector2<SizeType>& SectionSize, Function Callback) {
-			std::vector<CellType> Section(SectionSize.X * SectionSize.Y);
+		void EncodeSync(const SimulationState& State, const glm::i64vec2& SectionPosition, const glm::i64vec2& SectionSize, Function Callback) {
+			std::vector<CellType> Section(SectionSize.x * SectionSize.y);
 
-			for (SizeType Y = 0; Y < SectionSize.Y; Y++) {
-				auto RowStart = State.CanvasPointer + FLATTEN_2D(SectionPosition.X, SectionPosition.Y + Y, State.CanvasSize.X);
+			for (SizeType Y = 0; Y < SectionSize.y; Y++) {
+				auto RowStart = State.CanvasPointer + FLATTEN_2D(SectionPosition.x, SectionPosition.y + Y, State.CanvasSize.x);
 
 				std::copy(
 					RowStart,
-					RowStart + SectionSize.X,
-					Section.begin() + SectionSize.Y * Y
+					RowStart + SectionSize.x,
+					Section.begin() + SectionSize.y * Y
 				);
 			}
 
@@ -217,7 +217,7 @@ namespace Encoding {
 			auto GridCopy = std::make_shared<std::vector<CellType>>();
 			auto GridSize = State.CanvasSize;
 
-			GridCopy->assign(State.CanvasPointer, State.CanvasPointer + GridSize.X * GridSize.Y);
+			GridCopy->assign(State.CanvasPointer, State.CanvasPointer + GridSize.x * GridSize.y);
 
 			Threads.AcquireThread();
 			std::thread([&, GridCopy, GridSize, States = State.PossibleStates, Callback]() {
@@ -227,16 +227,16 @@ namespace Encoding {
 		}
 
 		template<typename Function>
-		void EncodeAsync(const SimulationState& State, const Vector2<SizeType>& SectionPosition, const Vector2<SizeType>& SectionSize, Function Callback) {
-			auto Section = std::make_shared<std::vector<CellType>>(SectionSize.X * SectionSize.Y);
+		void EncodeAsync(const SimulationState& State, const glm::i64vec2& SectionPosition, const glm::i64vec2& SectionSize, Function Callback) {
+			auto Section = std::make_shared<std::vector<CellType>>(SectionSize.x * SectionSize.y);
 
-			for (SizeType Y = 0; Y < SectionSize.Y; Y++) {
-				auto RowStart = State.CanvasPointer + FLATTEN_2D(SectionPosition.X, SectionPosition.Y + Y, State.CanvasSize.X);
+			for (SizeType Y = 0; Y < SectionSize.y; Y++) {
+				auto RowStart = State.CanvasPointer + FLATTEN_2D(SectionPosition.x, SectionPosition.y + Y, State.CanvasSize.x);
 
 				std::copy(
 					RowStart,
-					RowStart + SectionSize.X,
-					Section->begin() + SectionSize.Y * Y
+					RowStart + SectionSize.x,
+					Section->begin() + SectionSize.y * Y
 				);
 			}
 

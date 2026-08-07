@@ -3,7 +3,7 @@
 #include "Common.h"
 
 #include "Types/SimulationState.h"
-#include "Types/Vector.h"
+#include "glm/ext/vector_int2_sized.hpp"
 #include "Types/Ant.h"
 
 
@@ -29,8 +29,8 @@ int main() {
 		RLRRLRRLRRLR & RLC When initializing both ants at the center (+/- 1 pixel tolerance on the y axis) with the same direction a prism with complex patterns is made
 	*/
 
-	Vector2<SizeType> CanvasSize(65536 / 2, 65536 / 2);
-	auto Center = CanvasSize / Vector2(2, 2);
+	glm::i64vec2 CanvasSize(65536 / 2, 65536 / 2);
+	auto Center = CanvasSize / glm::i64vec2(2, 2);
 
 	SimulationState Simulation = {};
 	Encoding::PaletteManager Palette = {};
@@ -38,8 +38,8 @@ int main() {
 
 	Simulation.Resize(CanvasSize);
 
-	Simulation.InsertAnt(Ant(Center, Vector2<int8_t>(0, 1), Configs::ParseStateMachine("RLRRLRRLRRLR"), true));
-	Simulation.InsertAnt(Ant(Center, Vector2<int8_t>(0, 1), Configs::ParseStateMachine("RLC"), true));
+	Simulation.InsertAnt(Ant(Center, glm::i8vec2(0, 1), Configs::ParseStateMachine("RLRRLRRLRRLR"), true));
+	Simulation.InsertAnt(Ant(Center, glm::i8vec2(0, 1), Configs::ParseStateMachine("RLC"), true));
 
 	Simulation.Reset();
 	Palette.ResizePalette(Simulation.PossibleStates);
@@ -79,18 +79,18 @@ int main() {
 			<< '\n';
 
 		/*
-		Encoder.EncodeAsync(Simulation, [&, i](const std::vector<uint8_t>& image_data, const Vector2<SizeType>&, unsigned int) {
+		Encoder.EncodeAsync(Simulation, [&, i](const std::vector<uint8_t>& image_data, const glm::i64vec2&, unsigned int) {
 			lodepng::save_file(image_data, "frames/" + std::to_string(i) + ".png");
 		});
 		//*/
 		/*
-		Encoder.EncodeSync(Simulation, [&, i](const std::vector<uint8_t>& image_data, const Vector2<SizeType>&, unsigned int) {
+		Encoder.EncodeSync(Simulation, [&, i](const std::vector<uint8_t>& image_data, const glm::i64vec2&, unsigned int) {
 			lodepng::save_file(image_data, "frames/" + std::to_string(i) + ".png");
 		});
 		//*/
 	}
 
-	Encoder.EncodeSync(Simulation, [&](const std::vector<uint8_t>& image_data, const Vector2<SizeType>&, unsigned int) {
+	Encoder.EncodeSync(Simulation, [&](const std::vector<uint8_t>& image_data, const glm::i64vec2&, unsigned int) {
 		lodepng::save_file(image_data, "frames/" + std::to_string(-1) + ".png");
 	});
 }
