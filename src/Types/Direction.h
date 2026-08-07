@@ -2,7 +2,7 @@
 
 #include <string_view>
 #include <cstdint>
-#include <vector>
+#include <span>
 #include <string>
 
 enum class DirectionEnum : int_fast8_t {
@@ -21,7 +21,7 @@ enum class DirectionEnum : int_fast8_t {
 };
 
 // @note Add 3 before indexing
-constexpr std::string_view DirectionStrings[] = {
+constexpr std::string_view DIRECTION_STRINGS[] = {
 	"L135",
 	"L",
 	"L45",
@@ -32,11 +32,11 @@ constexpr std::string_view DirectionStrings[] = {
 	"U"
 };
 
-std::string DirectionsToString(const std::vector<DirectionEnum>& Directions) {
-	std::string Result = {};
+std::string directions_to_string(const std::span<DirectionEnum>& direction_list) {
+	std::string result = {};
 
-	for (auto Direction : Directions)
-		Result += DirectionStrings[int8_t(Direction) + 3];
+	for (auto direction : direction_list)
+		result += DIRECTION_STRINGS[int8_t(direction) + 3];
 
-	return Result;
+	return result;
 }

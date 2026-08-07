@@ -6,7 +6,6 @@
 #include <vector>
 #include <string>
 
-#include <>
 
 #include "Direction.h"
 #include "Vector.h"
@@ -61,7 +60,7 @@ public:
 		direction.Y = IDX_2_DIR[direction_index * 2 + 1];
 	}
 
-	bool validate_position(const Vector2<SizeType>& grid_size) {
+	bool validate_position(const Vector2<SizeType>& grid_size) const {
 		return position_curr.X < grid_size.X && position_curr.Y < grid_size.Y && position_curr.X >= 0 && position_curr.Y >= 0;
 	}
 

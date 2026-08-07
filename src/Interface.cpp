@@ -23,120 +23,123 @@
 #include "Types/Ant.h"
 
 
-void SetupArguments(argparse::ArgumentParser& Parser) {
-	Parser.add_description("Efficient modular implementation of Langton's ant universal Turing machine which supports R45/L45, R90/L90, R135/L135, U(U turn), and C(Continue)");
+void setup_arguments(argparse::ArgumentParser& parser) {
+	parser.add_description("Efficient modular implementation of Langton's ant universal Turing machine which supports R45/L45, R90/L90, R135/L135, U(U turn), and C(Continue)");
 
-	Parser.add_argument("-x")
+	parser.add_argument("-x")
 		.default_value<SizeType>(1000)
 		.help("Canvas width");
 
-	Parser.add_argument("-y")
+	parser.add_argument("-y")
 		.default_value<SizeType>(1000)
 		.help("Canvas height");
 
-	Parser.add_argument("-m")
+	parser.add_argument("-m")
 		.default_value(std::vector<std::string>{"LRRRRRLLR"})
 		.append()
 		.help("Defines a state machine");
 
-	Parser.add_argument("-a")
+	parser.add_argument("-a")
 		.default_value(std::vector<std::string>{"P(500,500)D(0,-1)M(LR)"})
 		.append()
 		.help("Defines a ant, format: \"P(X,Y)D(DX,DY)M(M)S(S)F(W?)\" can be chained using ';'");
 
-	Parser.add_argument("-s")
+	parser.add_argument("-s")
 		.default_value<size_t>(1000)
 		.help("Defines when to take canvas snapshots");
 
-	Parser.add_argument("-t")
+	parser.add_argument("-t")
 		.default_value<size_t>(1)
 		.help("Defines how many encoding threads");
 
-	Parser.add_argument("-i")
+	parser.add_argument("-i")
 		.default_value("i5000")
 		.help("Defines how many iterations should be evaluated, i50b runs for 50b iterations, t50s runs for 50 seconds.");
 
-	Parser.add_argument("-o")
+	parser.add_argument("-o")
 		.default_value("frame-%d.png")
 		.help("Defines how to output frames");
 
-	Parser.add_argument("-f")
+	parser.add_argument("-f")
 		.default_value("pal")
 		.help("Defines the output format, available values: pal(palette) or idx(index/grayscale)");
 }
 
-int main(int ArgCount, const char* ArgValues[]) {
-	argparse::ArgumentParser Parser("Langton's ant");
+int main(int argc, const char* argv[]) {
+	argparse::ArgumentParser argument_parser("Langton's ant");
 
-	SetupArguments(Parser);
+	setup_arguments(argument_parser);
 
 	try {
-		Parser.parse_args(ArgCount, ArgValues);
+		argument_parser.parse_args(argc, argv);
 	}
-	catch (const std::exception& Error) {
-		std::cerr << Error.what() << std::endl;
-		std::cerr << Parser;
+	catch (const std::exception& error) {
+		std::cerr << error.what() << std::endl;
+		std::cerr << argument_parser;
 
 		return 1;
 	}
 
-	SimulationState Simulation = {};
+	SimulationState simulation = {};
 
 	std::printf(
 		"Setting canvas size to %u, %u\n",
-		Parser.get<SizeType>("-x"),
-		Parser.get<SizeType>("-y")
+		argument_parser.get<SizeType>("-x"),
+		argument_parser.get<SizeType>("-y")
 	);
 
-	Simulation.Resize({Parser.get<SizeType>("-x"), Parser.get<SizeType>("-y")});
+	simulation.Resize({
+		argument_parser.get<SizeType>("-x"),
+		argument_parser.get<SizeType>("-y"),
+	});
 
-	std::vector<std::vector<DirectionEnum>> StateMachines = {};
+	std::vector<std::vector<DirectionEnum>> fsm_list = {};
 
-	Configs::ParserStatus Result = Configs::ParserStatus::OK;
+	Configs::ParserStatus result = Configs::ParserStatus::OK;
 
-	for (auto& String : Parser.get<std::vector<std::string>>("-m")) {
-		Result = Configs::ParseStateMachines(
-			String,
-			StateMachines
+	for (auto& fsm_string : argument_parser.get<std::vector<std::string>>("-m")) {
+		result = Configs::ParseStateMachines(
+			fsm_string,
+			fsm_list
 		);
 
-		if (Result != Configs::ParserStatus::OK) {
-			std::cerr << "Failed to parse state machine \"" << String << "\" with status " << Configs::Error(Result) << '\n';
+		if (result != Configs::ParserStatus::OK) {
+			std::cerr << "Failed to parse state machine \"" << fsm_string << "\" with status " << Configs::Error(result) << '\n';
 			return 1;
 		}
 	}
 
 	std::printf("State Machines:\n");
-	for (auto& Item : StateMachines)
-		std::printf("\t%s\n", StateMachineToString(Item).c_str());
+	for (auto& fsm : fsm_list)
+		std::printf("\t%s\n", directions_to_string(fsm).c_str());
 
-	for (auto& String : Parser.get<std::vector<std::string>>("-a")) {
-		Result = Configs::ParseAnts(
-			String,
-			StateMachines,
-			Simulation.TemplateAnts
+	for (auto& fsm_string : argument_parser.get<std::vector<std::string>>("-a")) {
+		result = Configs::ParseAnts(
+			fsm_string,
+			fsm_list,
+			simulation.TemplateAnts
 		);
 
-		if (Result != Configs::ParserStatus::OK) {
-			std::cerr << "Failed to parse ant \"" << String << "\" with status " << Configs::Error(Result) << '\n';
+		if (result != Configs::ParserStatus::OK) {
+			std::cerr << "Failed to parse ant \"" << fsm_string << "\" with status " << Configs::Error(result) << '\n';
 			return 1;
 		}
 	}
 
-	Configs::Timing EvalCondition = {};
+	Configs::Timing eval_condition = {};
 
-	size_t SaveIters = Parser.get<size_t>("-s");
+	size_t save_iters = argument_parser.get<size_t>("-s");
 
-	Result = Configs::ParseTiming(Parser.get<std::string>("-i"), &EvalCondition);
+	result = Configs::ParseTiming(argument_parser.get<std::string>("-i"), &eval_condition);
 
-	if (Result != Configs::ParserStatus::OK) {
-		std::cerr << "Failed to parse evaluation condition with status " << Configs::Error(Result) << '\n';
+	if (result != Configs::ParserStatus::OK) {
+		std::cerr << "Failed to parse evaluation condition with status " << Configs::Error(result) << '\n';
 		return 1;
 	}
 
-	Simulation.Reset();
+	simulation.Reset();
 
-	size_t Iterations = 0;
+	size_t iterations = 0;
 
-	auto Start = std::chrono::high_resolution_clock::now();
+	auto start = std::chrono::high_resolution_clock::now();
 }

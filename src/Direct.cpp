@@ -56,7 +56,7 @@ int main() {
 
 	std::cout << "State machines:\n";
 	for (auto& Ant : Simulation.TemplateAnts)
-		std::cout << '\t' << DirectionsToString(Ant.state_machine) << '\n';
+		std::cout << '\t' << directions_to_string(Ant.state_machine) << '\n';
 
 	size_t Iterations = 64ull * 10000000ull;
 	double FrameRate = 64.0; // Video frame rate
