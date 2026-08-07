@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 
+#include "glm/vec2.hpp"
 
 #include "Direction.h"
 #include "Vector.h"
@@ -108,7 +109,7 @@ public:
 			wrap_position(grid_size);
 	}
 
-	bool doublestep_update_cell(CellType* grid, const Vector2<SizeType>& grid_size) {
+	bool doublestep_update_cell(CellType* grid, const Vector2<SizeType>& grid_size) const {
 		if (!validate_position(grid_size))
 			return false;
 

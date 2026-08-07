@@ -13,20 +13,63 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-#set(CMAKE_GENERATOR_PLATFORM x64)
+set(CMAKE_GENERATOR_PLATFORM x64)
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
+
+if(CMAKE_GENERATOR STREQUAL "Ninja" AND CMAKE_GENERATOR_PLATFORM STREQUAL "x64")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
+	unset(CMAKE_GENERATOR_PLATFORM)
+endif()
 
 include("CMake/lib_lodepng.cmake")
-include("CMake/lib_libtiff.cmake")
+include("CMake/lib_tiff.cmake")
 include("CMake/lib_argparse.cmake")
 include("CMake/lib_glm.cmake")
 
 if(MSVC)
 	add_compile_options(/W4)
+	add_compile_options(/permissive- /Zc:__cplusplus)
 else()
 	add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-add_executable(Interface src/Interface.cpp ${COMMON_SOURCES})
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	add_compile_options(
+		-Wno-c++11-narrowing
+		-fms-extensions
+		-fno-math-errno
+		-mllvm -vectorize-loops
+		-fvectorize
+		-fslp-vectorize
+	)
+endif()
+
+#add_library(lib-langtons-ant STATIC)
+
+set(BIN_NAME_CLI "langtons-ant-cli")
+set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
+
+add_executable(${BIN_NAME_CLI} src/Interface.cpp ${COMMON_SOURCES})
 add_executable(Direct src/Direct.cpp ${COMMON_SOURCES})
+
+target_link_libraries(
+	${BIN_NAME_CLI}
+	PRIVATE
+	lib-glm
+	lib-argparse
+	lib-lodepng
+	lib-tiff
+)
+
+target_link_libraries(
+	Direct
+	PRIVATE
+	lib-glm
+	lib-argparse
+	lib-lodepng
+	lib-tiff
+)

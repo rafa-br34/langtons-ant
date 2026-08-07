@@ -79,18 +79,18 @@ int main() {
 			<< '\n';
 
 		/*
-		Encoder.EncodeAsync(Simulation, [&, i](const std::vector<uint8_t>& ImageData, const Vector2<SizeType>&, unsigned int) {
-			lodepng::save_file(ImageData, "frames/" + std::to_string(i) + ".png");
+		Encoder.EncodeAsync(Simulation, [&, i](const std::vector<uint8_t>& image_data, const Vector2<SizeType>&, unsigned int) {
+			lodepng::save_file(image_data, "frames/" + std::to_string(i) + ".png");
 		});
 		//*/
 		/*
-		Encoder.EncodeSync(Simulation, [&, i](const std::vector<uint8_t>& ImageData, const Vector2<SizeType>&, unsigned int) {
-			lodepng::save_file(ImageData, "frames/" + std::to_string(i) + ".png");
+		Encoder.EncodeSync(Simulation, [&, i](const std::vector<uint8_t>& image_data, const Vector2<SizeType>&, unsigned int) {
+			lodepng::save_file(image_data, "frames/" + std::to_string(i) + ".png");
 		});
 		//*/
 	}
 
-	Encoder.EncodeSync(Simulation, [&](const std::vector<uint8_t>& ImageData, const Vector2<SizeType>&, unsigned int) {
-		lodepng::save_file(ImageData, "frames/" + std::to_string(-1) + ".png");
+	Encoder.EncodeSync(Simulation, [&](const std::vector<uint8_t>& image_data, const Vector2<SizeType>&, unsigned int) {
+		lodepng::save_file(image_data, "frames/" + std::to_string(-1) + ".png");
 	});
 }

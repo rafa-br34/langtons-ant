@@ -62,7 +62,7 @@ void setup_arguments(argparse::ArgumentParser& parser) {
 
 	parser.add_argument("-f")
 		.default_value("pal")
-		.help("Defines the output format, available values: pal(palette) or idx(index/grayscale)");
+		.help("Defines the output format, available values: pal (palette) or idx (index/grayscale)");
 }
 
 int main(int argc, const char* argv[]) {
