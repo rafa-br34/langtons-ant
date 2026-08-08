@@ -7,8 +7,8 @@
 #include <vector>
 
 #include <lodepng.h>
+#include <glm/ext/vector_int2_sized.hpp>
 
-#include "glm/ext/vector_int2_sized.hpp"
 #include "Ant.h"
 
 class SimulationState {

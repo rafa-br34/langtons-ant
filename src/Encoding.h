@@ -11,112 +11,112 @@
 #include <mutex>
 #include <cmath>
 
+#include <glm/ext/vector_int2_sized.hpp>
 #include <lodepng.h>
 
 #include "Types/SimulationState.h"
-#include "glm/ext/vector_int2_sized.hpp"
 #include "Types/Ant.h"
 
 namespace Encoding {
 	union RGBA32 {
-		uint32_t Color = 0;
+		uint32_t color = 0;
 
 		struct {
-			uint8_t R, G, B, A;
-		} RGBA;
+			uint8_t r, g, b, a;
+		} rgba;
 
-		operator uint32_t() const { return Color; }
+		operator uint32_t() const { return color; }
 	};
 
 	typedef RGBA32 (*ColorDescriptor)(size_t);
 
 	class PaletteManager {
 	private:
-		std::vector<RGBA32> m_Palette = {};
-		ColorDescriptor m_LastProcedure = nullptr;
+		std::vector<RGBA32> m_palette = {};
+		ColorDescriptor m_last_procedure = nullptr;
 
 	public:
-		ColorDescriptor ColoringProcedure = [](size_t Index) -> RGBA32 {
-			auto I = uint32_t(Index);
-			XOR_SHIFT32(I);
-			I *= 0x9E3779B9;
-			return {((I & 0x00FF0000) >> 16) | (I & 0x0000FF00) | ((I & 0x000000FF) << 16) | (I & 0xFF000000)};
+		ColorDescriptor coloring_procedure = [](size_t index) -> RGBA32 {
+			auto i = uint32_t(index);
+			XOR_SHIFT32(i);
+			i *= 0x9E3779B9;
+			return {((i & 0x00FF0000) >> 16) | (i & 0x0000FF00) | ((i & 0x000000FF) << 16) | (i & 0xFF000000)};
 		};
 
-		void ResizePalette(size_t StateCount) {
-			if (m_LastProcedure != ColoringProcedure) { // Reset the cache if the coloring procedure has changed
-				m_LastProcedure = ColoringProcedure;
-				m_Palette.clear();
+		void resize_palette(size_t state_count) {
+			if (m_last_procedure != coloring_procedure) { // Reset the cache if the coloring procedure has changed
+				m_last_procedure = coloring_procedure;
+				m_palette.clear();
 			}
 
-			size_t CacheSize = m_Palette.size();
-			if (StateCount <= CacheSize) {
-				if (CacheSize - StateCount > CacheSize * 2) // Resize the cache if it's more than 2x bigger
-					m_Palette.resize(StateCount);
+			size_t cache_size = m_palette.size();
+			if (state_count <= cache_size) {
+				if (cache_size - state_count > cache_size * 2) // Resize the cache if it's more than 2x bigger
+					m_palette.resize(state_count);
 
 				return;
 			}
 
-			m_Palette.reserve(StateCount);
-			for (size_t s = m_Palette.size(); s < StateCount; s++)
-				m_Palette.push_back(ColoringProcedure(s));
+			m_palette.reserve(state_count);
+			for (size_t s = m_palette.size(); s < state_count; s++)
+				m_palette.push_back(coloring_procedure(s));
 		}
 
-		inline size_t GetSize() const {
-			return m_Palette.size();
+		size_t get_size() const {
+			return m_palette.size();
 		}
 
-		inline RGBA32 GetColor(size_t Index) {
-			if (Index + 1 > m_Palette.size())
-				ResizePalette(Index + 1);
+		RGBA32 get_color(size_t index) {
+			if (index + 1 > m_palette.size())
+				resize_palette(index + 1);
 
-			return m_Palette[Index];
+			return m_palette[index];
 		}
 
-		inline RGBA32* GetData() {
-			return m_Palette.data();
+		RGBA32* get_data() {
+			return m_palette.data();
 		}
 
-		inline RGBA32 operator[](size_t Index) {
-			return m_Palette[Index];
+		RGBA32 operator[](size_t index) {
+			return m_palette[index];
 		}
 	};
 
 	class ThreadManager {
 	private:
-		std::condition_variable m_ThreadsSignal = {};
-		std::atomic<size_t> m_ThreadsActive = 0; // @todo std::atomic might not be required because of m_ThreadsLock and m_ThreadsSignal
-		std::mutex m_ThreadsLock = {};
+		std::condition_variable m_threads_signal = {};
+		std::atomic<size_t> m_threads_active = 0; // @todo std::atomic might not be required because of m_threads_lock and m_threads_signal
+		std::mutex m_threads_lock = {};
 
 	public:
-		size_t ThreadCount = 0;
+		size_t thread_count = 0;
 
-		void AcquireThread() {
-			std::unique_lock<std::mutex> Lock(m_ThreadsLock);
-			while (ThreadCount > 0 && m_ThreadsActive >= ThreadCount)
-				m_ThreadsSignal.wait(Lock);
+		void acquire_thread() {
+			std::unique_lock<std::mutex> lock(m_threads_lock);
+			while (thread_count > 0 && m_threads_active >= thread_count)
+				m_threads_signal.wait(lock);
 
-			m_ThreadsActive++;
-			DEBUG_PRINT("Acquired thread (%d active)\n", (int)m_ThreadsActive);
+			m_threads_active++;
+			DEBUG_PRINT("Acquired thread (%d active)\n", (int)m_threads_active);
 		}
 
-		void ReleaseThread() {
-			std::unique_lock<std::mutex> Lock(m_ThreadsLock);
-			m_ThreadsActive--;
-			m_ThreadsSignal.notify_all();
-			DEBUG_PRINT("Released thread (%d active)\n", (int)m_ThreadsActive);
+		void release_thread() {
+			std::unique_lock<std::mutex> lock(m_threads_lock);
+			m_threads_active--;
+			m_threads_signal.notify_all();
+			DEBUG_PRINT("Released thread (%d active)\n", (int)m_threads_active);
 		}
 
-		void WaitJobs() {
-			std::unique_lock<std::mutex> Lock(m_ThreadsLock);
-			while (m_ThreadsActive > 0)
-				m_ThreadsSignal.wait(Lock);
+		void wait_jobs() {
+			std::unique_lock<std::mutex> lock(m_threads_lock);
+			while (m_threads_active > 0)
+				m_threads_signal.wait(lock);
 		}
 
-		size_t ActiveThreads() const { return m_ThreadsActive; }
+		size_t active_threads() const { return m_threads_active; }
 
 		ThreadManager() = default;
-		~ThreadManager() { WaitJobs(); }
+		~ThreadManager() { wait_jobs(); }
 	};
 
 	enum class ImageFormat : uint8_t {
@@ -126,128 +126,134 @@ namespace Encoding {
 
 	class EncoderState {
 	private:
-		lodepng::State m_SetupEncoderState(size_t StateCount, unsigned int BitDepth) {
-			lodepng::State State = {};
+		lodepng::State m_setup_encoder_state(size_t state_count, unsigned int bit_depth) {
+			lodepng::State state = {};
 
-			lodepng_state_init(&State);
+			lodepng_state_init(&state);
 
-			LodePNGColorType ColorType;
+			LodePNGColorType color_type;
 
-			switch (Format) {
+			switch (format) {
 				case ImageFormat::PNG_PALETTE:
-					ColorType = LCT_PALETTE;
+					color_type = LCT_PALETTE;
 					break;
 				case ImageFormat::PNG_GRAYSCALE:
-					ColorType = LCT_GREY;
+					color_type = LCT_GREY;
 					break;
 
 				default: {
-					DEBUG_PRINT("Unknown data format %d, ColorType will be set to LCT_GREY\n", (int)Format);
-					ColorType = LCT_GREY;
+					DEBUG_PRINT("Unknown data format %d, color_type will be set to LCT_GREY\n", (int)format);
+					color_type = LCT_GREY;
 					break;
 				}
 			}
 
-			State.info_png.color.colortype = ColorType;
-			State.info_raw.colortype = ColorType;
+			state.info_png.color.colortype = color_type;
+			state.info_raw.colortype = color_type;
 
-			State.info_png.color.bitdepth = BitDepth;
-			State.info_raw.bitdepth = BitDepth;
+			state.info_png.color.bitdepth = bit_depth;
+			state.info_raw.bitdepth = bit_depth;
 
-			State.encoder.auto_convert = 0;
+			state.encoder.auto_convert = 0;
 
-			if (Format != ImageFormat::PNG_PALETTE) return State;
+			if (format != ImageFormat::PNG_PALETTE) return state;
 
-			DEBUG_PRINT("Setting up palette with %d colors (%d bits per pixel):\n", (int)StateCount, (int)BitDepth);
-			Palette.ResizePalette(StateCount);
-			for (size_t i = 0; i < StateCount; i++) {
-				auto [R, G, B, A] = Palette[i].RGBA;
+			DEBUG_PRINT("Setting up palette with %d colors (%d bits per pixel):\n", (int)state_count, (int)bit_depth);
+			palette.resize_palette(state_count);
+			for (size_t i = 0; i < state_count; i++) {
+				auto [r, g, b, a] = palette[i].rgba;
 
-				DEBUG_PRINT(" %lu: %06X\n", (long unsigned int)i, Palette[i].Color & 0x00FFFFFF);
-				lodepng_palette_add(&State.info_png.color, R, G, B, 0xFF);
-				lodepng_palette_add(&State.info_raw, R, G, B, 0xFF);
+				DEBUG_PRINT(" %lu: %06X\n", (long unsigned int)i, palette[i].color & 0x00FFFFFF);
+				lodepng_palette_add(&state.info_png.color, r, g, b, 0xFF);
+				lodepng_palette_add(&state.info_raw, r, g, b, 0xFF);
 			}
 
-			return State;
+			return state;
 		}
 
 
 		template<typename Function>
-		void m_EncodeBuffer(const CellType* Grid, const glm::i64vec2& Size, size_t StateCount, Function Callback) {
-			std::vector<uint8_t> ImageData = {};
-			lodepng::State State = m_SetupEncoderState(StateCount, 8);
+		void m_encode_buffer(const CellType* grid, const glm::i64vec2& size, size_t state_count, Function callback) {
+			std::vector<uint8_t> image_data = {};
+			lodepng::State state = m_setup_encoder_state(state_count, 8);
 
-			unsigned int Result = lodepng::encode(ImageData, (const unsigned char*)Grid, (unsigned int)Size.x, (unsigned int)Size.y, State);
+			unsigned int result = lodepng::encode(
+				image_data,
+				(const unsigned char*)grid,
+				(unsigned int)size.x,
+				(unsigned int)size.y,
+				state
+			);
 
-			ASSERT_MSG(Result == 0, "lodepng::encode -> %d\n", Result);
+			ASSERT_MSG(result == 0, "lodepng::encode -> %d\n", result);
 
-			Callback(ImageData, glm::i64vec2(Size.x, Size.y), Result);
+			callback(image_data, glm::i64vec2(size.x, size.y), result);
 		}
 
 	public:
-		PaletteManager Palette = {};
-		ThreadManager Threads = {};
+		PaletteManager palette = {};
+		ThreadManager threads = {};
 
-		ImageFormat Format = ImageFormat::PNG_PALETTE;
+		ImageFormat format = ImageFormat::PNG_PALETTE;
 
 		template<typename Function>
-		void EncodeSync(const SimulationState& State, Function Callback) {
-			m_EncodeBuffer(State.canvas_pointer, State.canvas_size, State.possible_states, Callback);
+		void encode_sync(const SimulationState& state, Function callback) {
+			m_encode_buffer(state.canvas_pointer, state.canvas_size, state.possible_states, callback);
 		}
 
 		template<typename Function>
-		void EncodeSync(const SimulationState& State, const glm::i64vec2& SectionPosition, const glm::i64vec2& SectionSize, Function Callback) {
-			std::vector<CellType> Section(SectionSize.x * SectionSize.y);
+		void encode_sync(const SimulationState& state, const glm::i64vec2& section_position, const glm::i64vec2& section_size, Function callback) {
+			std::vector<CellType> section(section_size.x * section_size.y);
 
-			for (SizeType Y = 0; Y < SectionSize.y; Y++) {
-				auto RowStart = State.canvas_pointer + FLATTEN_2D(SectionPosition.x, SectionPosition.y + Y, State.canvas_size.x);
+			for (SizeType y = 0; y < section_size.y; y++) {
+				auto* row_start = state.canvas_pointer + FLATTEN_2D(section_position.x, section_position.y + y, state.canvas_size.x);
 
 				std::copy(
-					RowStart,
-					RowStart + SectionSize.x,
-					Section.begin() + SectionSize.y * Y
+					row_start,
+					row_start + section_size.x,
+					section.begin() + section_size.y * y
 				);
 			}
 
-			return m_EncodeBuffer(Section.data(), SectionSize, State.possible_states, Callback);
+			return m_encode_buffer(section.data(), section_size, state.possible_states, callback);
 		}
 
 		template<typename Function>
-		void EncodeAsync(const SimulationState& State, Function Callback) {
-			auto GridCopy = std::make_shared<std::vector<CellType>>();
-			auto GridSize = State.canvas_size;
+		void encode_async(const SimulationState& state, Function callback) {
+			auto grid_copy = std::make_shared<std::vector<CellType>>();
+			auto grid_size = state.canvas_size;
 
-			GridCopy->assign(State.canvas_pointer, State.canvas_pointer + GridSize.x * GridSize.y);
+			grid_copy->assign(state.canvas_pointer, state.canvas_pointer + grid_size.x * grid_size.y);
 
-			Threads.AcquireThread();
-			std::thread([&, GridCopy, GridSize, States = State.possible_states, Callback]() {
-				m_EncodeBuffer(GridCopy->data(), GridSize, States, Callback);
-				Threads.ReleaseThread();
+			threads.acquire_thread();
+			std::thread([&, grid_copy, grid_size, states = state.possible_states, callback]() {
+				m_encode_buffer(grid_copy->data(), grid_size, states, callback);
+				threads.release_thread();
 			}).detach();
 		}
 
 		template<typename Function>
-		void EncodeAsync(const SimulationState& State, const glm::i64vec2& SectionPosition, const glm::i64vec2& SectionSize, Function Callback) {
-			auto Section = std::make_shared<std::vector<CellType>>(SectionSize.x * SectionSize.y);
+		void encode_async(const SimulationState& state, const glm::i64vec2& section_position, const glm::i64vec2& section_size, Function callback) {
+			auto section = std::make_shared<std::vector<CellType>>(section_size.x * section_size.y);
 
-			for (SizeType Y = 0; Y < SectionSize.y; Y++) {
-				auto RowStart = State.canvas_pointer + FLATTEN_2D(SectionPosition.x, SectionPosition.y + Y, State.canvas_size.x);
+			for (SizeType y = 0; y < section_size.y; y++) {
+				auto* row_start = state.canvas_pointer + FLATTEN_2D(section_position.x, section_position.y + y, state.canvas_size.x);
 
 				std::copy(
-					RowStart,
-					RowStart + SectionSize.x,
-					Section->begin() + SectionSize.y * Y
+					row_start,
+					row_start + section_size.x,
+					section->begin() + section_size.y * y
 				);
 			}
 
-			Threads.AcquireThread();
-			std::thread([&, Section, SectionSize, States = State.possible_states, Callback]() {
-				m_EncodeBuffer(Section->data(), SectionSize, States, Callback);
-				Threads.ReleaseThread();
+			threads.acquire_thread();
+			std::thread([&, section, section_size, states = state.possible_states, callback]() {
+				m_encode_buffer(section->data(), section_size, states, callback);
+				threads.release_thread();
 			}).detach();
 		}
 
 		EncoderState() = default;
-		~EncoderState() { Threads.WaitJobs(); }
+		~EncoderState() { threads.wait_jobs(); }
 	};
 }

@@ -2,8 +2,9 @@
 #include "Configs.h"
 #include "Common.h"
 
+#include <glm/ext/vector_int2_sized.hpp>
+
 #include "Types/SimulationState.h"
-#include "glm/ext/vector_int2_sized.hpp"
 #include "Types/Ant.h"
 
 
@@ -33,7 +34,7 @@ int main() {
 	auto Center = canvas_size / glm::i64vec2(2, 2);
 
 	SimulationState Simulation = {};
-	Encoding::PaletteManager Palette = {};
+	Encoding::PaletteManager palette = {};
 	Encoding::EncoderState Encoder = {};
 
 	Simulation.resize(canvas_size);
@@ -42,10 +43,10 @@ int main() {
 	Simulation.insert_ant(Ant(Center, glm::i8vec2(0, 1), Configs::parse_state_machine("RLC"), true));
 
 	Simulation.reset();
-	Palette.ResizePalette(Simulation.possible_states);
+	palette.resize_palette(Simulation.possible_states);
 
-	Encoder.Threads.ThreadCount = 1;
-	Encoder.Format = Encoding::ImageFormat::PNG_PALETTE;
+	Encoder.threads.thread_count = 1;
+	Encoder.format = Encoding::ImageFormat::PNG_PALETTE;
 
 	// ffmpeg -r 60 -i "Frames/%d.png" -b:v 5M -c:v libx264 -preset veryslow -qp 0 output.mp4
 	// ffmpeg -r 60 -i "Frames/%d.png" -b:v 5M -c:v libx264 -preset veryslow -qp 0 -s 1920x1920 output.mp4
@@ -74,23 +75,23 @@ int main() {
 		std::cout
 			<< "Frame: " << i
 			<< " Iters: " << Result << '/' << CaptureDelta
-			<< " Active threads: " << Encoder.Threads.ActiveThreads()
+			<< " Active threads: " << Encoder.threads.active_threads()
 			<< " Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - StartTime)
 			<< '\n';
 
 		/*
-		Encoder.EncodeAsync(Simulation, [&, i](const std::vector<uint8_t>& image_data, const glm::i64vec2&, unsigned int) {
+		Encoder.encode_async(Simulation, [&, i](const std::vector<uint8_t>& image_data, const glm::i64vec2&, unsigned int) {
 			lodepng::save_file(image_data, "frames/" + std::to_string(i) + ".png");
 		});
 		//*/
-		//*
+		/*
 		Encoder.EncodeSync(Simulation, [&, i](const std::vector<uint8_t>& image_data, const glm::i64vec2&, unsigned int) {
 			lodepng::save_file(image_data, "frames/" + std::to_string(i) + ".png");
 		});
 		//*/
 	}
 
-	Encoder.EncodeSync(Simulation, [&](const std::vector<uint8_t>& image_data, const glm::i64vec2&, unsigned int) {
+	Encoder.encode_sync(Simulation, [&](const std::vector<uint8_t>& image_data, const glm::i64vec2&, unsigned int) {
 		lodepng::save_file(image_data, "frames/" + std::to_string(-1) + ".png");
 	});
 }

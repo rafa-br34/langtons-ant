@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 
-#include "glm/ext/vector_int2_sized.hpp"
+#include <glm/ext/vector_int2_sized.hpp>
 
 #include "Direction.h"
 
