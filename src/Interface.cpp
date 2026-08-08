@@ -23,7 +23,7 @@
 
 
 void setup_arguments(argparse::ArgumentParser& parser) {
-	parser.add_description("Efficient modular implementation of Langton's ant universal Turing machine which supports R45/L45, R90/L90, R135/L135, U(U turn), and C(Continue)");
+	parser.add_description("Efficient modular implementation of Langton's ant universal Turing machine.");
 
 	parser.add_argument("-x")
 		.default_value<SizeType>(1000)
@@ -36,12 +36,12 @@ void setup_arguments(argparse::ArgumentParser& parser) {
 	parser.add_argument("-m")
 		.default_value(std::vector<std::string>{"LRRRRRLLR"})
 		.append()
-		.help("Defines a state machine");
+		.help("Defines a state machine. Supports R45/L45, R90/L90 (can also be written as L/R), R135/L135, U (U turn), and C (Continue).");
 
 	parser.add_argument("-a")
 		.default_value(std::vector<std::string>{"P(500,500)D(0,-1)M(LR)"})
 		.append()
-		.help("Defines a ant, format: \"P(X,Y)D(DX,DY)M(M)S(S)F(W?)\" can be chained using ';'");
+		.help("Defines a ant, format: \"P(X,Y)D(DX,DY)M(<fsm_idx|fsm_instructions>)S(S)F(W?)\" can be chained using ';'");
 
 	parser.add_argument("-s")
 		.default_value<size_t>(1000)
@@ -82,7 +82,7 @@ int main(int argc, const char* argv[]) {
 	SimulationState simulation = {};
 
 	std::printf(
-		"Setting canvas size to %u, %u\n",
+		"Setting canvas size to %lli, %lli\n",
 		argument_parser.get<SizeType>("-x"),
 		argument_parser.get<SizeType>("-y")
 	);
@@ -125,6 +125,14 @@ int main(int argc, const char* argv[]) {
 		}
 	}
 
+	Encoding::PaletteManager palette = {};
+	Encoding::EncoderState encoder = {};
+
+	palette.resize_palette(simulation.possible_states);
+
+	encoder.threads.thread_count = 1;
+	encoder.format = Encoding::ImageFormat::PNG_PALETTE;
+
 	Configs::Timing eval_condition = {};
 
 	size_t save_iters = argument_parser.get<size_t>("-s");
@@ -138,7 +146,28 @@ int main(int argc, const char* argv[]) {
 
 	simulation.reset();
 
-	size_t iterations = 0;
+	size_t curr_iter = 0;
 
-	auto start = std::chrono::high_resolution_clock::now();
+	auto time_start = std::chrono::high_resolution_clock::now();
+
+	while (true) {
+		auto time_now = std::chrono::high_resolution_clock::now();
+		auto curr_time = time_now - time_start;
+
+		if (Configs::check_timing_done(eval_condition, curr_iter, curr_time))
+			break;
+
+		simulation.simulate(save_iters);
+		curr_iter += save_iters;
+
+		std::cout
+			<< "Iters: " << curr_iter << " Each " << save_iters
+			<< " Active threads: " << encoder.threads.active_threads()
+			<< " Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(curr_time)
+			<< '\n';
+
+		encoder.encode_sync(simulation, [&](const std::vector<uint8_t>& image_data, const glm::i64vec2&, unsigned int) {
+			lodepng::save_file(image_data, "frames/" + std::to_string(-1) + ".png");
+		});
+	}
 }

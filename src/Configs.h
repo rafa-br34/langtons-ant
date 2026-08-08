@@ -37,6 +37,7 @@ namespace Configs {
 		}
 	};
 
+
 	enum class ParserStatus : uint16_t {
 		OK = 0,
 		NO_MATCHES,
@@ -65,6 +66,21 @@ namespace Configs {
 			return std::distance(dictionary.begin(), iterator);
 		else
 			return std::nullopt;
+	}
+
+	template<typename Duration>
+	bool check_timing_done(const Timing& timing_obj, size_t curr_idx, const Duration& curr_time) {
+		using namespace std::chrono;
+
+		if (timing_obj.type == TimingType::ITERATION_BASED) {
+			return curr_idx >= timing_obj.value.iter;
+		}
+		else if (timing_obj.type == TimingType::TIME_BASED) {
+			return curr_time >= duration<double>(timing_obj.value.time);
+		}
+		else {
+			return true;
+		}
 	}
 
 	ParserStatus parse_timing(const std::string& timing_str, Timing* timing_obj) {

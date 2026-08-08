@@ -31,22 +31,22 @@ int main() {
 	*/
 
 	glm::i64vec2 canvas_size(65536 / 2, 65536 / 2);
-	auto Center = canvas_size / glm::i64vec2(2, 2);
+	auto center = canvas_size / glm::i64vec2(2, 2);
 
-	SimulationState Simulation = {};
+	SimulationState simulation = {};
 	Encoding::PaletteManager palette = {};
-	Encoding::EncoderState Encoder = {};
+	Encoding::EncoderState encoder = {};
 
-	Simulation.resize(canvas_size);
+	simulation.resize(canvas_size);
 
-	Simulation.insert_ant(Ant(Center, glm::i8vec2(0, 1), Configs::parse_state_machine("RLRRLRRLRRLR"), true));
-	Simulation.insert_ant(Ant(Center, glm::i8vec2(0, 1), Configs::parse_state_machine("RLC"), true));
+	simulation.insert_ant(Ant(center, glm::i8vec2(0, 1), Configs::parse_state_machine("RLRRLRRLRRLR"), true));
+	simulation.insert_ant(Ant(center, glm::i8vec2(0, 1), Configs::parse_state_machine("RLC"), true));
 
-	Simulation.reset();
-	palette.resize_palette(Simulation.possible_states);
+	simulation.reset();
+	palette.resize_palette(simulation.possible_states);
 
-	Encoder.threads.thread_count = 1;
-	Encoder.format = Encoding::ImageFormat::PNG_PALETTE;
+	encoder.threads.thread_count = 1;
+	encoder.format = Encoding::ImageFormat::PNG_PALETTE;
 
 	// ffmpeg -r 60 -i "Frames/%d.png" -b:v 5M -c:v libx264 -preset veryslow -qp 0 output.mp4
 	// ffmpeg -r 60 -i "Frames/%d.png" -b:v 5M -c:v libx264 -preset veryslow -qp 0 -s 1920x1920 output.mp4
@@ -56,8 +56,8 @@ int main() {
 	// ./LangtonsAnt | ~/ffmpeg/ffmpeg -y -f rawvideo -pix_fmt rgb24 -s 1920x1920 -r 30 -i - -c:v libx264 -preset veryslow -s 1920x1920 output.h264
 
 	std::cout << "State machines:\n";
-	for (auto& Ant : Simulation.ant_templates)
-		std::cout << '\t' << directions_to_string(Ant.state_machine) << '\n';
+	for (auto& ant : simulation.ant_templates)
+		std::cout << '\t' << directions_to_string(ant.state_machine) << '\n';
 
 	size_t Iterations = 64ull * 10000000ull;
 	double FrameRate = 64.0; // Video frame rate
@@ -70,28 +70,28 @@ int main() {
 
 	for (size_t i = 0; i < Frames; i++) {
 		StartTime = std::chrono::high_resolution_clock::now();
-		size_t Result = Simulation.simulate(CaptureDelta);
+		size_t Result = simulation.simulate(CaptureDelta);
 
 		std::cout
 			<< "Frame: " << i
 			<< " Iters: " << Result << '/' << CaptureDelta
-			<< " Active threads: " << Encoder.threads.active_threads()
+			<< " Active threads: " << encoder.threads.active_threads()
 			<< " Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - StartTime)
 			<< '\n';
 
 		/*
-		Encoder.encode_async(Simulation, [&, i](const std::vector<uint8_t>& image_data, const glm::i64vec2&, unsigned int) {
+		Encoder.encode_async(simulation, [&, i](const std::vector<uint8_t>& image_data, const glm::i64vec2&, unsigned int) {
 			lodepng::save_file(image_data, "frames/" + std::to_string(i) + ".png");
 		});
 		//*/
 		/*
-		Encoder.EncodeSync(Simulation, [&, i](const std::vector<uint8_t>& image_data, const glm::i64vec2&, unsigned int) {
+		Encoder.EncodeSync(simulation, [&, i](const std::vector<uint8_t>& image_data, const glm::i64vec2&, unsigned int) {
 			lodepng::save_file(image_data, "frames/" + std::to_string(i) + ".png");
 		});
 		//*/
 	}
 
-	Encoder.encode_sync(Simulation, [&](const std::vector<uint8_t>& image_data, const glm::i64vec2&, unsigned int) {
+	encoder.encode_sync(simulation, [&](const std::vector<uint8_t>& image_data, const glm::i64vec2&, unsigned int) {
 		lodepng::save_file(image_data, "frames/" + std::to_string(-1) + ".png");
 	});
 }
