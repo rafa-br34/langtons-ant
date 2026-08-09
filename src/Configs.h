@@ -9,7 +9,7 @@
 
 #include <argparse/argparse.hpp>
 
-#include "Types/Ant.h"
+#include "types/ant.h"
 
 
 namespace Configs {

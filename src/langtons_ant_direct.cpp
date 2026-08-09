@@ -1,11 +1,11 @@
-#include "Encoding.h"
-#include "Configs.h"
-#include "Common.h"
+#include "encoding.h"
+#include "configs.h"
+#include "common.h"
 
 #include <glm/ext/vector_int2_sized.hpp>
 
-#include "Types/SimulationState.h"
-#include "Types/Ant.h"
+#include "types/simulation_state.h"
+#include "types/ant.h"
 
 
 #include <chrono>

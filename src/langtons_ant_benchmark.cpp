@@ -1,6 +1,6 @@
-#include "Configs.h"
-#include "Common.h"
-#include "Types/SimulationState.h"
+#include "configs.h"
+#include "common.h"
+#include "types/simulation_state.h"
 #include "Types/Ant.h"
 
 #include <glm/ext/vector_int2_sized.hpp>

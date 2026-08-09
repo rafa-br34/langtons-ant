@@ -14,12 +14,12 @@
 
 #include <argparse/argparse.hpp>
 
-#include "Encoding.h"
-#include "Configs.h"
-#include "Common.h"
+#include "encoding.h"
+#include "configs.h"
+#include "common.h"
 
-#include "Types/SimulationState.h"
-#include "Types/Ant.h"
+#include "types/simulation_state.h"
+#include "types/ant.h"
 
 
 void setup_arguments(argparse::ArgumentParser& parser) {

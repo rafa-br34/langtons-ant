@@ -14,8 +14,8 @@
 #include <glm/ext/vector_int2_sized.hpp>
 #include <lodepng.h>
 
-#include "Types/SimulationState.h"
-#include "Types/Ant.h"
+#include "types/simulation_state.h"
+#include "types/ant.h"
 
 namespace Encoding {
 	union RGBA32 {

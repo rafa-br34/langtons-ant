@@ -1,5 +1,5 @@
 #pragma once
-#include "../Common.h"
+#include "../common.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -9,7 +9,7 @@
 #include <lodepng.h>
 #include <glm/ext/vector_int2_sized.hpp>
 
-#include "Ant.h"
+#include "ant.h"
 
 class SimulationState {
 private:

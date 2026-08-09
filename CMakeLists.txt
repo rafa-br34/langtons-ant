@@ -50,14 +50,11 @@ endif()
 
 #add_library(lib-langtons-ant STATIC)
 
-set(BIN_NAME_CLI "langtons-ant-cli")
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 
-add_executable(${BIN_NAME_CLI} src/Interface.cpp ${COMMON_SOURCES})
-add_executable(Direct src/Direct.cpp ${COMMON_SOURCES})
-
+add_executable(langtons_ant_interface src/langtons_ant_interface.cpp ${COMMON_SOURCES})
 target_link_libraries(
-	${BIN_NAME_CLI}
+	langtons_ant_interface
 	PRIVATE
 	lib-glm
 	lib-argparse
@@ -65,8 +62,10 @@ target_link_libraries(
 	lib-tiff
 )
 
+
+add_executable(langtons_ant_direct src/langtons_ant_direct.cpp ${COMMON_SOURCES})
 target_link_libraries(
-	Direct
+	langtons_ant_direct
 	PRIVATE
 	lib-glm
 	lib-argparse
@@ -74,10 +73,9 @@ target_link_libraries(
 	lib-tiff
 )
 
-add_executable(Benchmark src/Benchmark.cpp)
-
+add_executable(langtons_ant_benchmark src/langtons_ant_benchmark.cpp)
 target_link_libraries(
-	Benchmark
+	langtons_ant_benchmark
 	PRIVATE
 	lib-glm
 	lib-argparse

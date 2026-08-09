@@ -1,5 +1,5 @@
 #pragma once
-#include "../Common.h"
+#include "../common.h"
 
 #include <string_view>
 #include <cstdint>
@@ -8,7 +8,7 @@
 
 #include <glm/ext/vector_int2_sized.hpp>
 
-#include "Direction.h"
+#include "direction.h"
 
 
 // Index after flattening
