@@ -7,10 +7,9 @@
 #include <thread>
 #include <atomic>
 #include <chrono>
+#include <array>
 #include <mutex>
 #include <map>
-
-#include <array>
 
 #include <argparse/argparse.hpp>
 

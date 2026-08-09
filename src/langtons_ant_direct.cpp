@@ -1,14 +1,14 @@
-#include "encoding.h"
-#include "configs.h"
 #include "common.h"
+
+#include <chrono>
 
 #include <glm/ext/vector_int2_sized.hpp>
 
+#include "encoding.h"
+#include "configs.h"
 #include "types/simulation_state.h"
 #include "types/ant.h"
 
-
-#include <chrono>
 
 int main() {
 	/*

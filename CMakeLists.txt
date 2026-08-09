@@ -48,8 +48,6 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	)
 endif()
 
-#add_library(lib-langtons-ant STATIC)
-
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 
 add_executable(langtons_ant_interface src/langtons_ant_interface.cpp ${COMMON_SOURCES})
@@ -81,4 +79,11 @@ target_link_libraries(
 	lib-argparse
 	lib-lodepng
 	lib-tiff
+)
+
+add_custom_target(
+	langtons_ant ALL DEPENDS
+	langtons_ant_interface
+	langtons_ant_direct
+	langtons_ant_benchmark
 )
