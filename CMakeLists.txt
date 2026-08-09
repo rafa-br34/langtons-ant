@@ -73,3 +73,14 @@ target_link_libraries(
 	lib-lodepng
 	lib-tiff
 )
+
+add_executable(Benchmark src/Benchmark.cpp)
+
+target_link_libraries(
+	Benchmark
+	PRIVATE
+	lib-glm
+	lib-argparse
+	lib-lodepng
+	lib-tiff
+)
