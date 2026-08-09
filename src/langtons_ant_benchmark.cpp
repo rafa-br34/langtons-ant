@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <chrono>
+#include <cstdio>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -32,6 +33,7 @@ struct RunResult {
 	double seconds = 0.0;
 	uint64_t cycles = 0;
 	size_t iterations = 0;
+	uint64_t checksum = 0;
 };
 
 uint64_t read_timestamp_counter() {
@@ -47,6 +49,28 @@ uint64_t read_timestamp_counter() {
 #else
 	return 0;
 #endif
+}
+
+// Layout translation: maps logical grid coordinates (x, y) to a linear memory index.
+// Currently row-major; the body is swapped out when a space-filling curve layout is added.
+size_t grid_index(const glm::i64vec2& grid_size, SizeType x, SizeType y) {
+	return FLATTEN_2D(x, y, grid_size.x);
+}
+
+// Layout-independent checksum of the logical grid state (FNV-1a). Iterates logical
+// coordinates through the layout translation instead of raw memory, so the checksum
+// stays stable across memory layouts (e.g. space-filling curves).
+uint64_t state_checksum(const SimulationState& simulation) {
+	uint64_t checksum = 14695981039346656037ull; // FNV-1a offset basis
+
+	for (SizeType y = 0; y < simulation.canvas_size.y; y++) {
+		for (SizeType x = 0; x < simulation.canvas_size.x; x++) {
+			checksum ^= simulation.canvas_pointer[grid_index(simulation.canvas_size, x, y)];
+			checksum *= 1099511628211ull; // FNV-1a prime
+		}
+	}
+
+	return checksum;
 }
 
 RunResult time_simulation(const BenchmarkCase& benchmark_case) {
@@ -69,7 +93,8 @@ RunResult time_simulation(const BenchmarkCase& benchmark_case) {
 	return {
 		std::chrono::duration<double>(end_time - start_time).count(),
 		end_cycles - start_cycles,
-		iterations
+		iterations,
+		state_checksum(simulation)
 	};
 }
 
@@ -83,21 +108,34 @@ void run_benchmark(const BenchmarkCase& benchmark_case) {
 	double total_seconds = 0.0;
 	uint64_t total_cycles = 0;
 	size_t total_iterations = 0;
+	uint64_t first_checksum = 0;
+	bool checksums_match = true;
 
 	for (size_t run = 0; run < benchmark_case.run_count; run++) {
-		auto [seconds, cycles, iterations] = time_simulation(benchmark_case);
+		auto [seconds, cycles, iterations, checksum] = time_simulation(benchmark_case);
 
 		total_seconds += seconds;
 		total_cycles += cycles;
 		total_iterations += iterations;
+
+		if (run == 0)
+			first_checksum = checksum;
+		else
+			checksums_match = checksums_match && (checksum == first_checksum);
+
+		char checksum_str[32];
+		std::snprintf(checksum_str, sizeof(checksum_str), "0x%016llX", (unsigned long long)checksum);
 
 		std::cout
 			<< "  Run " << (run + 1) << ": " << iterations << " iterations in "
 			<< std::fixed << std::setprecision(4) << seconds << "s, "
 			<< std::setprecision(3) << (double(cycles) / 1E9) << "G cycles ("
 			<< std::setprecision(2) << (double(iterations) / seconds / 1E6) << " M steps/s, "
-			<< (double(cycles) / double(iterations)) << " cycles/step)\n";
+			<< (double(cycles) / double(iterations)) << " cycles/step) checksum " << checksum_str << '\n';
 	}
+
+	if (!checksums_match)
+		std::cout << "  ERROR: checksum mismatch between runs!\n";
 
 	std::cout
 		<< "  Mean: " << std::fixed << std::setprecision(4) << (total_seconds / double(benchmark_case.run_count)) << "s, "
