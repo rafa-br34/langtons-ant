@@ -7,6 +7,10 @@
 #include <string>
 #include <vector>
 
+#if defined(_MSC_VER)
+	#include <intrin.h>
+#endif
+
 #include <glm/ext/vector_int2_sized.hpp>
 
 #include "configs.h"
@@ -26,8 +30,24 @@ struct BenchmarkCase {
 
 struct RunResult {
 	double seconds = 0.0;
+	uint64_t cycles = 0;
 	size_t iterations = 0;
 };
+
+uint64_t read_timestamp_counter() {
+#if defined(_MSC_VER)
+	_mm_lfence();
+	uint64_t cycles = __rdtsc();
+	_mm_lfence();
+	return cycles;
+#elif defined(__GNUC__)
+	unsigned int lo, hi;
+	__asm__ volatile("lfence; rdtsc" : "=a"(lo), "=d"(hi)::"memory");
+	return ((uint64_t)hi << 32) | lo;
+#else
+	return 0;
+#endif
+}
 
 RunResult time_simulation(const BenchmarkCase& benchmark_case) {
 	SimulationState simulation = {};
@@ -38,12 +58,17 @@ RunResult time_simulation(const BenchmarkCase& benchmark_case) {
 
 	simulation.reset();
 
-	auto start = std::chrono::steady_clock::now();
+	auto start_time = std::chrono::steady_clock::now();
+	uint64_t start_cycles = read_timestamp_counter();
+
 	size_t iterations = simulation.simulate(benchmark_case.iteration_limit);
-	auto end = std::chrono::steady_clock::now();
+
+	uint64_t end_cycles = read_timestamp_counter();
+	auto end_time = std::chrono::steady_clock::now();
 
 	return {
-		std::chrono::duration<double>(end - start).count(),
+		std::chrono::duration<double>(end_time - start_time).count(),
+		end_cycles - start_cycles,
 		iterations
 	};
 }
@@ -56,23 +81,30 @@ void run_benchmark(const BenchmarkCase& benchmark_case) {
 			  << "  Wrap: " << (benchmark_case.wrap ? "yes" : "no") << '\n';
 
 	double total_seconds = 0.0;
+	uint64_t total_cycles = 0;
 	size_t total_iterations = 0;
 
 	for (size_t run = 0; run < benchmark_case.run_count; run++) {
-		auto [seconds, iterations] = time_simulation(benchmark_case);
+		auto [seconds, cycles, iterations] = time_simulation(benchmark_case);
 
 		total_seconds += seconds;
+		total_cycles += cycles;
 		total_iterations += iterations;
 
 		std::cout
 			<< "  Run " << (run + 1) << ": " << iterations << " iterations in "
-			<< std::fixed << std::setprecision(4) << seconds << " s ("
-			<< std::setprecision(2) << (double(iterations) / seconds / 1e6) << " M steps/s)\n";
+			<< std::fixed << std::setprecision(4) << seconds << "s, "
+			<< std::setprecision(3) << (double(cycles) / 1E9) << "G cycles ("
+			<< std::setprecision(2) << (double(iterations) / seconds / 1E6) << " M steps/s, "
+			<< (double(cycles) / double(iterations)) << " cycles/step)\n";
 	}
 
 	std::cout
-		<< "  Mean: " << std::fixed << std::setprecision(4) << (total_seconds / double(benchmark_case.run_count)) << " s ("
-		<< std::setprecision(2) << (double(total_iterations) / total_seconds / 1e6) << " M steps/s)\n\n";
+		<< "  Mean: " << std::fixed << std::setprecision(4) << (total_seconds / double(benchmark_case.run_count)) << "s, "
+		<< std::setprecision(3) << (double(total_cycles) / double(benchmark_case.run_count) / 1E9) << "G cycles ("
+		<< std::setprecision(2) << (double(total_iterations) / total_seconds / 1E6) << "M steps/s, "
+		<< (double(total_cycles) / double(total_iterations)) << " cycles/step, "
+		<< (double(total_cycles) / total_seconds / 1E9) << "GHz)\n\n";
 }
 
 Ant make_ant(const glm::i64vec2& position, const std::string& fsm, bool wrap) {
