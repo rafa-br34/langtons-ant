@@ -103,11 +103,11 @@ function SwitchRow({
 	disabled,
 	onCheckedChange,
 }: {
-	title: string
-	description: string
-	checked: boolean
-	disabled: boolean
-	onCheckedChange: (checked: boolean) => void
+	readonly title: string
+	readonly description: string
+	readonly checked: boolean
+	readonly disabled: boolean
+	readonly onCheckedChange: (checked: boolean) => void
 }) {
 	return (
 		<div className="flex items-center justify-between gap-2.5 rounded-control border border-line bg-black/20 px-2.5 py-2 transition-colors">
@@ -118,7 +118,7 @@ function SwitchRow({
 			<Switch.Root
 				checked={checked}
 				disabled={disabled}
-				onCheckedChange={(nextChecked) => onCheckedChange(nextChecked)}
+				onCheckedChange={nextChecked => onCheckedChange(nextChecked)}
 				aria-label={title}
 				className={cn(
 					"group relative h-[18px] w-[34px] shrink-0 rounded-full border border-[#4a4a4a] bg-[#303030] transition-colors",

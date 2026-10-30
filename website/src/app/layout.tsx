@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 		canonical: `${basePath}/`,
 	},
 	icons: {
-		icon: `${basePath}/favicon.svg`,
+		icon: `${basePath}/favicon.ico`,
 		shortcut: `${basePath}/favicon.ico`,
 	},
 	openGraph: {

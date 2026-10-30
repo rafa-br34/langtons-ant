@@ -1,3 +1,66 @@
 {
-    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+	"C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+	
+	"[javascript]": {
+		"editor.defaultFormatter": "dprint.dprint",
+		"editor.formatOnSave": true
+	},
+	"[typescript]": {
+		"editor.defaultFormatter": "dprint.dprint",
+		"editor.formatOnSave": true
+	},
+	"[javascriptreact]": {
+		"editor.defaultFormatter": "dprint.dprint",
+		"editor.formatOnSave": true
+	},
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "dprint.dprint",
+		"editor.formatOnSave": true
+	},
+	"[json]": {
+		"editor.defaultFormatter": "dprint.dprint",
+		"editor.formatOnSave": true
+	},
+	"[sass]": {
+		"editor.defaultFormatter": "dprint.dprint",
+		"editor.formatOnSave": true
+	},
+	"[scss]": {
+		"editor.defaultFormatter": "dprint.dprint",
+		"editor.formatOnSave": true
+	},
+	"[css]": {
+		"editor.defaultFormatter": "dprint.dprint",
+		"editor.formatOnSave": true
+	},
+	"[postcss]": {
+		"editor.defaultFormatter": "dprint.dprint",
+		"editor.formatOnSave": true
+	},
+	"[tailwindcss]": {
+		"editor.defaultFormatter": "dprint.dprint",
+		"editor.formatOnSave": true
+	},
+	"[python]": {
+		"diffEditor.ignoreTrimWhitespace": false,
+		"editor.defaultColorDecorators": "never",
+		"editor.formatOnType": true,
+		"editor.wordBasedSuggestions": "off",
+		"editor.defaultFormatter": "eeyore.yapf"
+	},
+	"[cpp]": {
+		"editor.defaultFormatter": "xaver.clang-format",
+		"editor.formatOnSave": true,
+		"editor.formatOnSaveMode": "file"
+	},
+	"[c]": {
+		"editor.defaultFormatter": "xaver.clang-format",
+		"editor.formatOnSave": true,
+		"editor.formatOnSaveMode": "file"
+	},
+	"[html]": {
+		"editor.defaultFormatter": "dprint.dprint",
+		"editor.formatOnSave": true,
+		"editor.formatOnSaveMode": "file"
+	},
 }
