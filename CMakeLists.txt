@@ -50,7 +50,8 @@ endif()
 
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 
-add_executable(langtons_ant_interface src/langtons_ant_interface.cpp ${COMMON_SOURCES})
+
+add_executable(langtons_ant_interface src/langtons_ant_eval_cli.cpp ${COMMON_SOURCES})
 target_link_libraries(
 	langtons_ant_interface
 	PRIVATE
