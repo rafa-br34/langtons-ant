@@ -1,14 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Langton's Ant">
-	<rect width="64" height="64" rx="14" fill="#1a1a1a"/>
-	<rect x="0.75" y="0.75" width="62.5" height="62.5" rx="13.25" fill="none" stroke="#3b3b3b" stroke-width="1.5"/>
+<svg
+	xmlns="http://www.w3.org/2000/svg"
+	viewBox="0 0 64 64"
+	role="img"
+	aria-label="Langton's Ant"
+>
+	<rect width="64" height="64" rx="14" fill="#1a1a1a" />
+	<rect
+		x="0.75"
+		y="0.75"
+		width="62.5"
+		height="62.5"
+		rx="13.25"
+		fill="none"
+		stroke="#3b3b3b"
+		stroke-width="1.5"
+	/>
 	<g fill="#40e0e0">
-		<circle cx="32" cy="21" r="5"/>
-		<circle cx="32" cy="32" r="6"/>
-		<ellipse cx="32" cy="44" rx="7" ry="8"/>
+		<circle cx="32" cy="21" r="5" />
+		<circle cx="32" cy="32" r="6" />
+		<ellipse cx="32" cy="44" rx="7" ry="8" />
 	</g>
 	<g fill="none" stroke="#40e0e0" stroke-width="3" stroke-linecap="round">
-		<path d="M27 28 19 24M27 33 17 33M27 39 20 44"/>
-		<path d="M37 28 45 24M37 33 47 33M37 39 44 44"/>
-		<path d="M29 17 24 11M35 17 40 11"/>
+		<path d="M27 28 19 24M27 33 17 33M27 39 20 44" />
+		<path d="M37 28 45 24M37 33 47 33M37 39 44 44" />
+		<path d="M29 17 24 11M35 17 40 11" />
 	</g>
 </svg>

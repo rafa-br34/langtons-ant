@@ -9,17 +9,16 @@ const siteUrl = `https://rafa-br34.github.io${basePath || "/LangtonsAnt"}`
 
 export const metadata: Metadata = {
 	metadataBase: new URL("https://rafa-br34.github.io"),
-	title: "Langton's Ant — Interactive Cellular Automata",
-	description:
-		"An interactive WebGL implementation of Langton's ant. Build state machines, pan and zoom the grid, and watch a universal Turing machine unfold.",
+	title: "Langton's Ant",
+	description: "An interactive WebGL implementation of Langton's ant. Build state machines, pan and zoom the grid, and watch a universal Turing machine unfold.",
 	keywords: ["cellular automata", "langton's ant", "langtons ant", "turing machine", "webgl", "simulation"],
 	authors: [{ name: "rafa_br34", url: "https://rafa-br34.dev" }],
 	alternates: {
-		canonical: `${basePath}/`
+		canonical: `${basePath}/`,
 	},
 	icons: {
 		icon: `${basePath}/favicon.svg`,
-		shortcut: `${basePath}/favicon.ico`
+		shortcut: `${basePath}/favicon.ico`,
 	},
 	openGraph: {
 		type: "website",
@@ -27,54 +26,52 @@ export const metadata: Metadata = {
 		locale: "en_US",
 		url: `${basePath}/`,
 		title: "Langton's Ant — Interactive Cellular Automata",
-		description:
-			"An interactive WebGL implementation of Langton's ant. Build state machines, pan and zoom the grid, and watch a universal Turing machine unfold.",
+		description: "An interactive WebGL implementation of Langton's ant. Build state machines, pan and zoom the grid, and watch a universal Turing machine unfold.",
 		images: [
 			{
 				url: `${siteUrl}/thumbnail.png`,
 				width: 4321,
 				height: 4320,
-				alt: "LRRRRRLLR pattern on a 7680x4320 canvas after 76522574 iterations"
-			}
-		]
+				alt: "LRRRRRLLR pattern on a 7680x4320 canvas after 76522574 iterations",
+			},
+		],
 	},
 	twitter: {
 		card: "summary_large_image",
 		title: "Langton's Ant — Interactive Cellular Automata",
-		description:
-			"An interactive WebGL implementation of Langton's ant. Build state machines, pan and zoom the grid.",
-		images: [`${siteUrl}/thumbnail.png`]
+		description: "An interactive WebGL implementation of Langton's ant. Build state machines, pan and zoom the grid.",
+		images: [`${siteUrl}/thumbnail.png`],
 	},
 	robots: {
 		index: true,
-		follow: true
-	}
+		follow: true,
+	},
 }
 
 export const viewport: Viewport = {
 	width: "device-width",
 	initialScale: 1,
 	themeColor: "#222222",
-	colorScheme: "dark"
+	colorScheme: "dark",
 }
 
 const LINKED_DATA = {
 	"@context": "https://schema.org",
 	"@type": "WebApplication",
-	name: "Langton's Ant",
-	url: `${siteUrl}/`,
-	applicationCategory: "EducationalApplication",
-	operatingSystem: "Any",
-	author: {
+	"name": "Langton's Ant",
+	"url": `${siteUrl}/`,
+	"applicationCategory": "EducationalApplication",
+	"operatingSystem": "Any",
+	"author": {
 		"@type": "Person",
-		name: "rafa_br34",
-		url: "https://rafa-br34.dev"
+		"name": "rafa_br34",
+		"url": "https://rafa-br34.dev",
 	},
-	offers: {
+	"offers": {
 		"@type": "Offer",
-		price: "0",
-		priceCurrency: "USD"
-	}
+		"price": "0",
+		"priceCurrency": "USD",
+	},
 }
 
 export default function RootLayout({ children }: { readonly children: ReactNode }) {

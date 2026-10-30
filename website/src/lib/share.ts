@@ -1,12 +1,6 @@
 import { compressSync, decompressSync, strFromU8, strToU8 } from "fflate"
 
-import {
-	createAntId,
-	createDefaultAnt,
-	normalizeRules,
-	type AntConfig,
-	type DirectionValue
-} from "./ant"
+import { type AntConfig, createAntId, createDefaultAnt, type DirectionValue, normalizeRules } from "./ant"
 import { clamp } from "./utils"
 
 export const MAX_GRID = 8192
@@ -38,7 +32,7 @@ interface SerializedWorld {
 export const DEFAULT_WORLD: WorldConfig = {
 	width: 300,
 	height: 300,
-	ants: [createDefaultAnt(300, 300)]
+	ants: [createDefaultAnt(300, 300)],
 }
 
 function toInteger(value: unknown, fallback: number) {
@@ -79,7 +73,7 @@ function parseAnt(value: unknown): AntConfig | null {
 		rules,
 		wrap: Boolean(record.Wrap ?? record.wrap),
 		stepSize: clamp(toInteger(record.StepSize ?? record.stepSize, 1), 0, 100000),
-		enabled: record.enabled === undefined ? true : Boolean(record.enabled)
+		enabled: record.enabled === undefined ? true : Boolean(record.enabled),
 	}
 }
 
@@ -125,8 +119,8 @@ export function serializeWorld(world: WorldConfig): string {
 			rules: ant.rules,
 			wrap: ant.wrap,
 			stepSize: ant.stepSize,
-			enabled: ant.enabled
-		}))
+			enabled: ant.enabled,
+		})),
 	}
 
 	const compressed = compressSync(strToU8(JSON.stringify(payload)), { level: 9, mem: 12 })

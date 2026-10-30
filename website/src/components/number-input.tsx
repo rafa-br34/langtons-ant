@@ -29,7 +29,7 @@ export function NumberInput({
 	disabled = false,
 	commitOnBlur = false,
 	ariaLabel,
-	className
+	className,
 }: NumberInputProps) {
 	const [draft, setDraft] = useState(String(value))
 	const focused = useRef(false)
@@ -80,12 +80,10 @@ export function NumberInput({
 				"flex h-[34px] items-center gap-1.5 rounded-control border border-line bg-black/25 px-2.5 transition-[border-color,box-shadow,background-color]",
 				"hover:border-[#494949] focus-within:border-accent focus-within:bg-black/40 focus-within:ring-[3px] focus-within:ring-accent/15",
 				disabled && "opacity-50",
-				className
+				className,
 			)}
 		>
-			{prefix ? (
-				<span className="shrink-0 font-mono text-[9.5px] text-faint">{prefix}</span>
-			) : null}
+			{prefix ? <span className="shrink-0 font-mono text-[9.5px] text-faint">{prefix}</span> : null}
 			<input
 				id={id}
 				type="number"

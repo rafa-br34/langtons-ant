@@ -10,9 +10,9 @@ const nextConfig: NextConfig = {
 	trailingSlash: true,
 	reactStrictMode: true,
 	images: {
-		unoptimized: true
+		unoptimized: true,
 	},
-	...(basePath ? { basePath } : {})
+	...(basePath ? { basePath } : {}),
 }
 
 export default nextConfig

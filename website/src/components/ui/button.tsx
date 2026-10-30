@@ -20,7 +20,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 	size?: keyof typeof SIZES
 }
 
-export function Button({ className, variant = "default", size = "default", type = "button", ...props }: ButtonProps) {
+export function Button({ className, variant = "default", size = "default", type = "button", ...props }: Readonly<ButtonProps>) {
 	return (
 		<button
 			type={type}

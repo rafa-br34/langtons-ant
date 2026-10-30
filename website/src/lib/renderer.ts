@@ -57,7 +57,7 @@ export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, 
 	const gl = canvas.getContext("webgl2", {
 		antialias: true,
 		premultipliedAlpha: false,
-		preserveDrawingBuffer: true
+		preserveDrawingBuffer: true,
 	})
 
 	if (!gl) {
@@ -70,13 +70,19 @@ export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, 
 	const gridSizeUniform = gl.getUniformLocation(program, "u_GridSize")
 
 	const vertices = new Float32Array([
-		-1, -1,
-		-1, 1,
-		1, -1,
+		-1,
+		-1,
+		-1,
+		1,
+		1,
+		-1,
 
-		-1, 1,
-		1, -1,
-		1, 1
+		-1,
+		1,
+		1,
+		-1,
+		1,
+		1,
 	])
 
 	const vertexBuffer = gl.createBuffer()
@@ -102,7 +108,7 @@ export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, 
 		},
 
 		draw(camera, width, height, grid, upload) {
-			if (disposed) { return }
+			if (disposed) return
 
 			gl.clearColor(0, 0, 0, 0)
 			gl.clear(gl.COLOR_BUFFER_BIT)
@@ -111,7 +117,7 @@ export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, 
 			gl.uniform3fv(positionUniform, [
 				camera.x * (1 + camera.z),
 				camera.y * (1 + camera.z),
-				camera.z
+				camera.z,
 			])
 			gl.uniform2fv(gridSizeUniform, [width, height])
 
@@ -128,7 +134,7 @@ export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, 
 					0,
 					gl.RED_INTEGER,
 					gl.UNSIGNED_BYTE,
-					grid
+					grid,
 				)
 			}
 
@@ -137,13 +143,13 @@ export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, 
 		},
 
 		dispose() {
-			if (disposed) { return }
+			if (disposed) return
 			disposed = true
 
 			gl.deleteProgram(program)
 			gl.deleteBuffer(vertexBuffer)
 			gl.deleteVertexArray(vertexArray)
 			gl.deleteTexture(texture)
-		}
+		},
 	}
 }

@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect, useState, type ReactNode } from "react"
 import { Switch } from "@base-ui/react/switch"
 import { Tabs } from "@base-ui/react/tabs"
 import { Toggle } from "@base-ui/react/toggle"
@@ -19,19 +18,13 @@ import {
 	ExternalLink,
 	Link2,
 	Plus,
-	Shuffle
+	Shuffle,
 } from "lucide-react"
+import { type ReactNode, useEffect, useState } from "react"
 
-import { Button } from "@/components/ui/button"
 import { NumberInput } from "@/components/number-input"
-import {
-	DIRECTION_VALUES,
-	directionLabel,
-	parseStateMachine,
-	stringifyStateMachine,
-	type AntConfig,
-	type DirectionValue
-} from "@/lib/ant"
+import { Button } from "@/components/ui/button"
+import { type AntConfig, DIRECTION_VALUES, directionLabel, type DirectionValue, parseStateMachine, stringifyStateMachine } from "@/lib/ant"
 import { MAX_GRID, type WorldConfig } from "@/lib/share"
 import { MAX_IPF } from "@/lib/simulation"
 import { cn } from "@/lib/utils"
@@ -58,21 +51,21 @@ const SPEEDS = [1, 10, 100, 1000] as const
 const RULE_PRESETS = [
 	{ label: "RL", rules: parseStateMachine("RL").rules },
 	{ label: "LRRRRRLLR", rules: parseStateMachine("LRRRRRLLR").rules },
-	{ label: "RLR", rules: parseStateMachine("RLR").rules }
+	{ label: "RLR", rules: parseStateMachine("RLR").rules },
 ]
 
 const TAB_CLASS = cn(
 	"inline-flex h-[30px] flex-1 items-center justify-center gap-1.5 rounded-[4px] border border-transparent px-2",
 	"text-[9.5px] font-semibold tracking-[0.09em] whitespace-nowrap text-faint uppercase transition-colors",
 	"hover:bg-white/[0.06] hover:text-fg-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-	"data-[active]:border-line data-[active]:bg-white/[0.06] data-[active]:text-fg"
+	"data-[active]:border-line data-[active]:bg-white/[0.06] data-[active]:text-fg",
 )
 
 const CHIP_CLASS = cn(
 	"inline-flex h-[23px] items-center rounded-[3px] border border-line px-2 font-mono text-[9.5px] leading-none text-faint",
 	"transition-colors hover:border-line-strong hover:bg-white/[0.06] hover:text-fg",
 	"data-[pressed]:border-accent/40 data-[pressed]:bg-accent-soft data-[pressed]:text-accent-bright",
-	"disabled:pointer-events-none disabled:opacity-35"
+	"disabled:pointer-events-none disabled:opacity-35",
 )
 
 const LABEL_CLASS = "flex items-center justify-between gap-2 text-[10.5px] text-muted"
@@ -87,7 +80,7 @@ const DIRECTIONS = [
 	{ dx: 1, dy: 0, label: "East", icon: ArrowRight, position: "col-start-3 row-start-2" },
 	{ dx: -1, dy: 1, label: "South west", icon: ArrowDownLeft, position: "col-start-1 row-start-3" },
 	{ dx: 0, dy: 1, label: "South", icon: ArrowDown, position: "col-start-2 row-start-3" },
-	{ dx: 1, dy: 1, label: "South east", icon: ArrowDownRight, position: "col-start-3 row-start-3" }
+	{ dx: 1, dy: 1, label: "South east", icon: ArrowDownRight, position: "col-start-3 row-start-3" },
 ] as const
 
 function Badge({ children, className }: { children: ReactNode; className?: string }) {
@@ -95,7 +88,7 @@ function Badge({ children, className }: { children: ReactNode; className?: strin
 		<span
 			className={cn(
 				"inline-flex h-5 items-center rounded-full border border-line bg-white/[0.028] px-1.5 font-mono text-[9.5px] whitespace-nowrap text-muted",
-				className
+				className,
 			)}
 		>
 			{children}
@@ -108,7 +101,7 @@ function SwitchRow({
 	description,
 	checked,
 	disabled,
-	onCheckedChange
+	onCheckedChange,
 }: {
 	title: string
 	description: string
@@ -131,7 +124,7 @@ function SwitchRow({
 					"group relative h-[18px] w-[34px] shrink-0 rounded-full border border-[#4a4a4a] bg-[#303030] transition-colors",
 					"data-[checked]:border-accent/55 data-[checked]:bg-accent/20",
 					"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas",
-					"disabled:cursor-not-allowed disabled:opacity-45"
+					"disabled:cursor-not-allowed disabled:opacity-45",
 				)}
 			>
 				<Switch.Thumb className="absolute top-0.5 left-0.5 size-3 rounded-full bg-[#8f8f8f] transition-transform group-data-[checked]:translate-x-4 group-data-[checked]:bg-accent" />
@@ -154,7 +147,7 @@ export function ControlPanel({
 	onReplaceRules,
 	onResize,
 	onIpfChange,
-	onCopyLink
+	onCopyLink,
 }: ControlPanelProps) {
 	const [rulesDraft, setRulesDraft] = useState("RL")
 
@@ -168,8 +161,8 @@ export function ControlPanel({
 	const rulesHint = !selectedAnt
 		? "Select an ant to edit its rule set."
 		: !rulesValid
-			? "That rule set is not valid. Use R, L, U, C or angles (45/90/135)."
-			: `${parsedRules.rules.length} states · ${stringifyStateMachine(parsedRules.rules, " ").trim()}`
+		? "That rule set is not valid. Use R, L, U, C or angles (45/90/135)."
+		: `${parsedRules.rules.length} states · ${stringifyStateMachine(parsedRules.rules, " ").trim()}`
 
 	function applyRules() {
 		if (!selectedAnt || !rulesValid) {
@@ -208,8 +201,7 @@ export function ControlPanel({
 				<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain max-lg:overflow-visible">
 					<Tabs.Panel value="world" className="p-4">
 						<p className="mb-3.5 text-[10px] leading-relaxed text-faint">
-							The grid the ant walks. Resizing the world resets the run; up to {MAX_GRID.toLocaleString("en-US")} cells
-							per side.
+							The grid the ant walks. Resizing the world resets the run; up to {MAX_GRID.toLocaleString("en-US")} cells per side.
 						</p>
 
 						<div className="flex flex-col gap-1.5">
@@ -280,11 +272,13 @@ export function ControlPanel({
 							<Badge>{selectedAnt ? `Ant ${selectedIndex + 1}` : "None"}</Badge>
 						</div>
 
-						{!selectedAnt ? (
-							<p className="mb-3 rounded-control border border-dashed border-line px-3 py-2 text-[10px] leading-relaxed text-faint">
-								No ant selected. Pick one in the Ants tab, or add a new ant.
-							</p>
-						) : null}
+						{!selectedAnt
+							? (
+								<p className="mb-3 rounded-control border border-dashed border-line px-3 py-2 text-[10px] leading-relaxed text-faint">
+									No ant selected. Pick one in the Ants tab, or add a new ant.
+								</p>
+							)
+							: null}
 
 						<div className={cn("flex flex-col gap-3", !selectedAnt && "opacity-55")}>
 							<div className="flex flex-col gap-1.5">
@@ -334,7 +328,7 @@ export function ControlPanel({
 														aria-hidden
 														className={cn(
 															"grid size-8 place-items-center rounded-[3px] border border-dashed border-line",
-															direction.position
+															direction.position,
 														)}
 													>
 														<span className="size-1.5 rounded-full bg-faint" />
@@ -356,7 +350,7 @@ export function ControlPanel({
 														"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
 														"aria-pressed:border-accent/50 aria-pressed:bg-accent-soft aria-pressed:text-accent-bright",
 														"disabled:pointer-events-none disabled:opacity-35",
-														direction.position
+														direction.position,
 													)}
 												>
 													<Icon className="size-3.5" aria-hidden />
@@ -403,7 +397,7 @@ export function ControlPanel({
 										className={cn(
 											"flex h-[34px] items-center rounded-control border border-line bg-black/25 px-2.5 transition-[border-color,box-shadow]",
 											"focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/15",
-											selectedAnt && !rulesValid && "border-danger/65 ring-[3px] ring-danger/10"
+											selectedAnt && !rulesValid && "border-danger/65 ring-[3px] ring-danger/10",
 										)}
 									>
 										<input
@@ -434,7 +428,7 @@ export function ControlPanel({
 										title="Mutate one rule"
 										onClick={() => {
 											const next = [...(selectedAnt?.rules ?? [])]
-											if (next.length === 0) { return }
+											if (next.length === 0) return
 											next[Math.floor(Math.random() * next.length)] = DIRECTION_VALUES[Math.floor(Math.random() * DIRECTION_VALUES.length)]!
 											onReplaceRules(next)
 										}}
@@ -517,42 +511,50 @@ export function ControlPanel({
 							className="flex max-h-64 min-h-[66px] flex-col gap-1 overflow-y-auto rounded-control border border-line bg-black/15 p-1"
 							aria-label="Ant list"
 						>
-							{world.ants.length === 0 ? (
-								<p className="grid min-h-[56px] place-items-center px-2.5 text-center text-[10px] text-faint">
-									No ants yet — add one to start the walk.
-								</p>
-							) : (
-								world.ants.map((ant, index) => {
-									const Selected = ant.id === selectedId
-									return (
-										<button
-											key={ant.id}
-											type="button"
-											aria-pressed={Selected}
-											onClick={() => onSelectAnt(ant.id)}
-											className={cn(
-												"flex h-[30px] shrink-0 items-center gap-2 rounded-[3px] border border-transparent px-2 text-left text-[11px] text-muted transition-colors",
-												"hover:bg-white/[0.06] hover:text-fg",
-												Selected && "border-accent/30 bg-accent-soft text-fg"
-											)}
-										>
-											<span className={cn("size-[5px] rounded-full bg-[#5f5f5f]", Selected && "bg-accent shadow-[0_0_8px_rgb(32_192_192/0.6)]")} />
-											<span>Ant {index + 1}</span>
-											<span className="ml-auto truncate font-mono text-[9px] text-faint">{stringifyStateMachine(ant.rules)}</span>
-											<ChevronRight className={cn("size-3 text-faint", Selected && "text-accent")} aria-hidden />
-										</button>
-									)
-								})
-							)}
+							{world.ants.length === 0
+								? (
+									<p className="grid min-h-[56px] place-items-center px-2.5 text-center text-[10px] text-faint">
+										No ants yet — add one to start the walk.
+									</p>
+								)
+								: (
+									world.ants.map((ant, index) => {
+										const Selected = ant.id === selectedId
+										return (
+											<button
+												key={ant.id}
+												type="button"
+												aria-pressed={Selected}
+												onClick={() => onSelectAnt(ant.id)}
+												className={cn(
+													"flex h-[30px] shrink-0 items-center gap-2 rounded-[3px] border border-transparent px-2 text-left text-[11px] text-muted transition-colors",
+													"hover:bg-white/[0.06] hover:text-fg",
+													Selected && "border-accent/30 bg-accent-soft text-fg",
+												)}
+											>
+												<span className={cn("size-[5px] rounded-full bg-[#5f5f5f]", Selected && "bg-accent shadow-[0_0_8px_rgb(32_192_192/0.6)]")} />
+												<span>Ant {index + 1}</span>
+												<span className="ml-auto truncate font-mono text-[9px] text-faint">{stringifyStateMachine(ant.rules)}</span>
+												<ChevronRight className={cn("size-3 text-faint", Selected && "text-accent")} aria-hidden />
+											</button>
+										)
+									})
+								)}
 						</div>
 					</Tabs.Panel>
 				</div>
 			</Tabs.Root>
 
 			<div className="flex shrink-0 items-center gap-3 border-t border-line bg-white/[0.012] px-3.5 py-1.5 text-[9px] text-faint">
-				<span><kbd className="mr-1">Space</kbd>run</span>
-				<span><kbd className="mr-1">S</kbd>step</span>
-				<span><kbd className="mr-1">R</kbd>reset</span>
+				<span>
+					<kbd className="mr-1">Space</kbd>run
+				</span>
+				<span>
+					<kbd className="mr-1">S</kbd>step
+				</span>
+				<span>
+					<kbd className="mr-1">R</kbd>reset
+				</span>
 			</div>
 
 			<div className="flex shrink-0 items-center justify-between gap-2 border-t border-line bg-black/25 px-3 py-2">

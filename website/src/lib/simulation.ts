@@ -36,10 +36,10 @@ export class LiveAnt {
 	}
 
 	wrapPosition(width: number, height: number) {
-		if (this.x < 0) { this.x = width - 1 }
-		if (this.y < 0) { this.y = height - 1 }
-		if (this.x >= width) { this.x = 0 }
-		if (this.y >= height) { this.y = 0 }
+		if (this.x < 0) this.x = width - 1
+		if (this.y < 0) this.y = height - 1
+		if (this.x >= width) this.x = 0
+		if (this.y >= height) this.y = 0
 	}
 
 	update(grid: Uint8Array, width: number, height: number) {

@@ -6,7 +6,7 @@ export const DIRECTION = {
 	L90: -2,
 	L135: -3,
 	C: 0,
-	U: 4
+	U: 4,
 } as const
 
 export type DirectionValue = (typeof DIRECTION)[keyof typeof DIRECTION]
@@ -56,7 +56,7 @@ export function createDefaultAnt(width: number, height: number): AntConfig {
 		rules: [DIRECTION.R90, DIRECTION.L90],
 		wrap: true,
 		stepSize: 1,
-		enabled: true
+		enabled: true,
 	}
 }
 
@@ -141,7 +141,7 @@ export const DIRECTION_LABELS: Record<string, string> = {
 	"0,1": "South",
 	"-1,1": "South west",
 	"-1,0": "West",
-	"-1,-1": "North west"
+	"-1,-1": "North west",
 }
 
 export function directionLabel(dx: number, dy: number) {

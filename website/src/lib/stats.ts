@@ -19,5 +19,5 @@ export const EMPTY_STATS: SimulationStats = {
 	liveAnts: 0,
 	buffer: "0B",
 	bandwidth: "0B/s",
-	camera: { x: 0, y: 0, z: 0 }
+	camera: { x: 0, y: 0, z: 0 },
 }

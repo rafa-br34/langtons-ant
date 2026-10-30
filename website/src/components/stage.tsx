@@ -1,7 +1,7 @@
 "use client"
 
-import type { RefObject } from "react"
 import { Download, Pause, Play, RotateCcw, Scan, StepForward } from "lucide-react"
+import type { RefObject } from "react"
 
 import { Button } from "@/components/ui/button"
 import type { SimulationStats } from "@/lib/stats"
@@ -25,7 +25,7 @@ const STAT_ITEMS = [
 	{ key: "fps", label: "FPS / IPS" },
 	{ key: "buffer", label: "Grid buffer" },
 	{ key: "bandwidth", label: "CPU → GPU" },
-	{ key: "camera", label: "Camera" }
+	{ key: "camera", label: "Camera" },
 ] as const
 
 function formatCamera(camera: SimulationStats["camera"]) {
@@ -41,7 +41,7 @@ export function Stage({
 	onStep,
 	onReset,
 	onResetCamera,
-	onSaveImage
+	onSaveImage,
 }: StageProps) {
 	const values: Record<(typeof STAT_ITEMS)[number]["key"], string> = {
 		iterations: stats.iterations.toLocaleString("en-US"),
@@ -49,7 +49,7 @@ export function Stage({
 		fps: `${stats.fps.toFixed(2)}/${stats.ips.toFixed(2)}`,
 		buffer: stats.buffer,
 		bandwidth: stats.bandwidth,
-		camera: formatCamera(stats.camera)
+		camera: formatCamera(stats.camera),
 	}
 
 	return (
@@ -70,13 +70,13 @@ export function Stage({
 							"inline-flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[10.5px] whitespace-nowrap transition-colors",
 							running
 								? "border-accent/35 bg-accent-soft text-fg-1"
-								: "border-line bg-black/20 text-muted"
+								: "border-line bg-black/20 text-muted",
 						)}
 					>
 						<span
 							className={cn(
 								"size-1.5 rounded-full",
-								running ? "animate-run-pulse bg-accent" : "bg-faint"
+								running ? "animate-run-pulse bg-accent" : "bg-faint",
 							)}
 						/>
 						{running ? "Running" : "Paused"}
@@ -84,9 +84,15 @@ export function Stage({
 				</div>
 
 				<div className="hidden items-center gap-3 text-[10px] whitespace-nowrap text-faint sm:flex">
-					<span><kbd className="mr-1">Drag</kbd>pan</span>
-					<span><kbd className="mr-1">Scroll</kbd>zoom</span>
-					<span><kbd className="mr-1">Space</kbd>run</span>
+					<span>
+						<kbd className="mr-1">Drag</kbd>pan
+					</span>
+					<span>
+						<kbd className="mr-1">Scroll</kbd>zoom
+					</span>
+					<span>
+						<kbd className="mr-1">Space</kbd>run
+					</span>
 				</div>
 			</div>
 
@@ -103,14 +109,16 @@ export function Stage({
 
 				<div className="pointer-events-none absolute inset-0 z-[2] viewport-glow" />
 
-				{error ? (
-					<div className="absolute inset-4 z-10 grid place-items-center">
-						<div className="max-w-sm rounded-control border border-danger/45 bg-[#261717]/95 px-4 py-3 text-center shadow-xl">
-							<p className="text-xs font-medium text-danger-text">WebGL could not start</p>
-							<p className="mt-1 font-mono text-[10px] leading-relaxed text-muted">{error}</p>
+				{error
+					? (
+						<div className="absolute inset-4 z-10 grid place-items-center">
+							<div className="max-w-sm rounded-control border border-danger/45 bg-[#261717]/95 px-4 py-3 text-center shadow-xl">
+								<p className="text-xs font-medium text-danger-text">WebGL could not start</p>
+								<p className="mt-1 font-mono text-[10px] leading-relaxed text-muted">{error}</p>
+							</div>
 						</div>
-					</div>
-				) : null}
+					)
+					: null}
 			</div>
 
 			<div

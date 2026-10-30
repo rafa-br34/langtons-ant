@@ -4,37 +4,19 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 import { ControlPanel } from "@/components/control-panel"
 import { Stage } from "@/components/stage"
-import {
-	clamp,
-	measureData,
-	basePath,
-	cn,
-	round
-} from "@/lib/utils"
-import {
-	createAntId,
-	createDefaultAnt,
-	randomRules,
-	type AntConfig,
-	type DirectionValue
-} from "@/lib/ant"
-import { createRenderer, type Camera, type Renderer } from "@/lib/renderer"
-import {
-	DEFAULT_WORLD,
-	MAX_GRID,
-	readWorldFromLocation,
-	writeWorldToLocation,
-	type WorldConfig
-} from "@/lib/share"
+import { type AntConfig, createAntId, createDefaultAnt, type DirectionValue, randomRules } from "@/lib/ant"
+import { type Camera, createRenderer, type Renderer } from "@/lib/renderer"
+import { DEFAULT_WORLD, MAX_GRID, readWorldFromLocation, type WorldConfig, writeWorldToLocation } from "@/lib/share"
 import { FrameTimer, MAX_IPF, Simulation } from "@/lib/simulation"
 import { EMPTY_STATS, type SimulationStats } from "@/lib/stats"
+import { basePath, clamp, cn, measureData, round } from "@/lib/utils"
 
 const SEED_ITERATIONS = 15000
 
 function cloneWorld(world: WorldConfig): WorldConfig {
 	return {
 		...world,
-		ants: world.ants.map(ant => ({ ...ant, rules: [...ant.rules] }))
+		ants: world.ants.map(ant => ({ ...ant, rules: [...ant.rules] })),
 	}
 }
 
@@ -42,7 +24,7 @@ function worldSignature(world: WorldConfig) {
 	return JSON.stringify({
 		width: world.width,
 		height: world.height,
-		ants: world.ants.map(ant => [ant.x, ant.y, ant.dx, ant.dy, ant.rules, ant.wrap, ant.stepSize, ant.enabled])
+		ants: world.ants.map(ant => [ant.x, ant.y, ant.dx, ant.dy, ant.rules, ant.wrap, ant.stepSize, ant.enabled]),
 	})
 }
 
@@ -150,8 +132,8 @@ export function Simulator() {
 			camera: {
 				x: round(cameraRef.current.x, 3),
 				y: round(cameraRef.current.y, 3),
-				z: round(cameraRef.current.z, 3)
-			}
+				z: round(cameraRef.current.z, 3),
+			},
 		})
 	}, [])
 
@@ -171,16 +153,19 @@ export function Simulator() {
 	// Keep the simulation engine in sync with the React world.
 	useEffect(() => {
 		if (!booted) {
-			return }
+			return
+		}
 
 		const signature = worldSignature(world)
 		if (lastSignatureRef.current === signature) {
-			return }
+			return
+		}
 		lastSignatureRef.current = signature
 
 		const sim = simRef.current
 		if (!sim) {
-			 return }
+			return
+		}
 
 		sim.resize(world.width, world.height)
 		sim.setAnts(world.ants)
@@ -206,23 +191,23 @@ export function Simulator() {
 	// Build the WebGL renderer once the canvas exists.
 	useEffect(() => {
 		const canvas = canvasRef.current
-		if (!canvas) { return }
+		if (!canvas) return
 
 		let cancelled = false
 		const prefix = basePath()
 
 		Promise.all([
 			fetch(`${prefix}/shaders/vertex.vert`).then((response) => {
-				if (!response.ok) { throw new Error(`Could not load the vertex shader (${response.status})`) }
+				if (!response.ok) throw new Error(`Could not load the vertex shader (${response.status})`)
 				return response.text()
 			}),
 			fetch(`${prefix}/shaders/fragment.frag`).then((response) => {
-				if (!response.ok) { throw new Error(`Could not load the fragment shader (${response.status})`) }
+				if (!response.ok) throw new Error(`Could not load the fragment shader (${response.status})`)
 				return response.text()
-			})
+			}),
 		])
 			.then(([vertex, fragment]) => {
-				if (cancelled) { return }
+				if (cancelled) return
 
 				const renderer = createRenderer(canvas, vertex, fragment)
 				rendererRef.current = renderer
@@ -236,7 +221,7 @@ export function Simulator() {
 				setRendererReady(true)
 			})
 			.catch((exception: unknown) => {
-				if (cancelled) { return }
+				if (cancelled) return
 				setError(exception instanceof Error ? exception.message : String(exception))
 			})
 
@@ -250,12 +235,12 @@ export function Simulator() {
 	// Keep the drawing buffer square and matched to its CSS box.
 	useEffect(() => {
 		const canvas = canvasRef.current
-		if (!canvas) { return }
+		if (!canvas) return
 
 		const target = canvas.parentElement ?? canvas
 		const observer = new ResizeObserver(() => {
 			const width = Math.max(1, Math.floor(canvas.getBoundingClientRect().width))
-			if (canvas.width === width && canvas.height === width) { return }
+			if (canvas.width === width && canvas.height === width) return
 
 			canvas.width = width
 			canvas.height = width
@@ -269,7 +254,7 @@ export function Simulator() {
 
 	// Main render loop.
 	useEffect(() => {
-		if (!rendererReady) { return }
+		if (!rendererReady) return
 
 		let frame = 0
 		let last = performance.now()
@@ -322,7 +307,7 @@ export function Simulator() {
 
 	const toggleRunning = useCallback(() => {
 		const sim = simRef.current
-		if (!sim) { return }
+		if (!sim) return
 
 		if (runningRef.current) {
 			runningRef.current = false
@@ -348,7 +333,7 @@ export function Simulator() {
 
 	const step = useCallback(() => {
 		const sim = simRef.current
-		if (!sim) { return }
+		if (!sim) return
 
 		if (sim.templates.length === 0) {
 			notify("Add or enable an ant first")
@@ -366,7 +351,7 @@ export function Simulator() {
 
 	const reset = useCallback(() => {
 		const sim = simRef.current
-		if (!sim) { return }
+		if (!sim) return
 
 		sim.reset()
 		dirtyRef.current = true
@@ -386,8 +371,8 @@ export function Simulator() {
 		const sim = simRef.current
 		const renderer = rendererRef.current
 
-		if (!canvas || !sim || !renderer) { return }
-		if (sim.width <= 0 || sim.height <= 0) { return }
+		if (!canvas || !sim || !renderer) return
+		if (sim.width <= 0 || sim.height <= 0) return
 
 		renderer.draw(cameraRef.current, sim.width, sim.height, sim.grid, true)
 
@@ -413,25 +398,25 @@ export function Simulator() {
 	}, [notify])
 
 	function updateAnt(patch: Partial<AntConfig>) {
-		if (!selectedId) { return }
+		if (!selectedId) return
 
 		setWorld((current) => ({
 			...current,
 			ants: current.ants.map((ant) => {
-				if (ant.id !== selectedId) { return ant }
+				if (ant.id !== selectedId) return ant
 
 				return {
 					...ant,
 					...patch,
 					x: patch.x === undefined ? ant.x : clamp(Math.round(patch.x), 0, current.width - 1),
-					y: patch.y === undefined ? ant.y : clamp(Math.round(patch.y), 0, current.height - 1)
+					y: patch.y === undefined ? ant.y : clamp(Math.round(patch.y), 0, current.height - 1),
 				}
-			})
+			}),
 		}))
 	}
 
 	function replaceRules(rules: DirectionValue[]) {
-		if (!selectedId) { return }
+		if (!selectedId) return
 		updateAnt({ rules })
 	}
 
@@ -439,7 +424,7 @@ export function Simulator() {
 		const ant: AntConfig = {
 			...createDefaultAnt(world.width, world.height),
 			rules: randomRules(),
-			wrap: true
+			wrap: true,
 		}
 
 		setWorld((current) => ({ ...current, ants: [...current.ants, ant] }))
@@ -447,12 +432,12 @@ export function Simulator() {
 	}
 
 	function cloneAnt() {
-		if (!selectedAnt) { return }
+		if (!selectedAnt) return
 
 		const clone: AntConfig = {
 			...selectedAnt,
 			id: createAntId(),
-			rules: [...selectedAnt.rules]
+			rules: [...selectedAnt.rules],
 		}
 
 		setWorld((current) => ({ ...current, ants: [...current.ants, clone] }))
@@ -460,7 +445,7 @@ export function Simulator() {
 	}
 
 	function removeAnt() {
-		if (!selectedId) { return }
+		if (!selectedId) return
 
 		const index = world.ants.findIndex((ant) => ant.id === selectedId)
 		const ants = world.ants.filter((ant) => ant.id !== selectedId)
@@ -484,8 +469,8 @@ export function Simulator() {
 				ants: current.ants.map((ant) => ({
 					...ant,
 					x: clamp(Math.round(ant.x * nextWidth / current.width), 0, nextWidth - 1),
-					y: clamp(Math.round(ant.y * nextHeight / current.height), 0, nextHeight - 1)
-				}))
+					y: clamp(Math.round(ant.y * nextHeight / current.height), 0, nextHeight - 1),
+				})),
 			}
 		})
 	}
@@ -499,14 +484,14 @@ export function Simulator() {
 	// Mouse and wheel camera controls.
 	useEffect(() => {
 		const canvas = canvasRef.current
-		if (!canvas) { return }
+		if (!canvas) return
 		const canvasElement: HTMLCanvasElement = canvas
 
 		function handlePointerMove(event: PointerEvent) {
-			if ((event.buttons & 1) === 0) { return }
+			if ((event.buttons & 1) === 0) return
 
 			const sim = simRef.current
-			if (!sim) { return }
+			if (!sim) return
 
 			const rect = canvasElement.getBoundingClientRect()
 			const ratioX = sim.width / sim.height
@@ -546,8 +531,8 @@ export function Simulator() {
 	// Keyboard shortcuts.
 	useEffect(() => {
 		function handleKeyDown(event: KeyboardEvent) {
-			if (event.defaultPrevented || event.repeat || event.altKey || event.ctrlKey || event.metaKey) { return }
-			if (document.querySelector('[role="dialog"]')) { return }
+			if (event.defaultPrevented || event.repeat || event.altKey || event.ctrlKey || event.metaKey) return
+			if (document.querySelector("[role=\"dialog\"]")) return
 
 			const target = event.target
 			if (target instanceof Element && target.closest("input, textarea, select, button, a, summary, [contenteditable='true']")) {
@@ -617,7 +602,7 @@ export function Simulator() {
 				aria-live="polite"
 				className={cn(
 					"fixed bottom-14 left-1/2 z-[100] max-w-[calc(100vw-32px)] -translate-x-1/2 rounded-panel border border-line-strong bg-[#1b1b1b] px-3 py-2 text-[11px] text-fg shadow-[0_16px_44px_rgb(0_0_0/0.5)] transition-opacity duration-150",
-					toast ? "opacity-100" : "pointer-events-none opacity-0"
+					toast ? "opacity-100" : "pointer-events-none opacity-0",
 				)}
 			>
 				{toast}

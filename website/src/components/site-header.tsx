@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { Dialog } from "@base-ui/react/dialog"
 import { Bug, Info, X } from "lucide-react"
+import { useEffect, useState } from "react"
 
 import { GithubIcon } from "@/components/github-icon"
 
@@ -33,9 +33,9 @@ function AboutDialog() {
 
 					<div className="px-[18px] py-[18px] text-[12.5px] leading-relaxed">
 						<p className="mb-2.5">
-							Langton&apos;s ant is a two-dimensional Turing machine. The ant walks a grid, turning according to the state
-							machine written on its current cell. Turn right on a blank cell, left on a filled one, and a few million steps
-							later a chaotic cloud snaps into a repeating <em className="text-fg-1">highway</em>.
+							Langton&apos;s ant is a two-dimensional Turing machine. The ant walks a grid, turning according to the state machine written on its current cell. Turn
+							right on a blank cell, left on a filled one, and a few million steps later a chaotic cloud snaps into a repeating{" "}
+							<em className="text-fg-1">highway</em>.
 						</p>
 						<p className="mb-2.5">
 							This page runs the simulation in JavaScript and streams the grid to a WebGL2 shader. The{" "}
@@ -58,10 +58,12 @@ function AboutDialog() {
 								["R", "Reset the run"],
 								["C", "Reset the camera"],
 								["Drag", "Pan the grid"],
-								["Scroll", "Zoom in / out"]
+								["Scroll", "Zoom in / out"],
 							].map(([key, action]) => (
 								<div key={key} className="grid grid-cols-[58px_minmax(0,1fr)] items-center gap-2.5 border-b border-white/5 py-1.5">
-									<dt><kbd>{key}</kbd></dt>
+									<dt>
+										<kbd>{key}</kbd>
+									</dt>
 									<dd className="truncate font-mono text-[10px] text-fg-1">{action}</dd>
 								</div>
 							))}
@@ -69,15 +71,29 @@ function AboutDialog() {
 
 						<h3 className="mt-5 mb-2 text-[10px] font-semibold tracking-[0.12em] text-fg-1 uppercase">State machines</h3>
 						<p>
-							Each character is one step of the machine: <code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">R</code>/<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">L</code> turn 90°,{" "}
-							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">R45</code>/<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">L45</code> and{" "}
-							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">R135</code>/<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">L135</code> turn
-							diagonally, <code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">U</code> reverses, and <code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">C</code> continues
-							straight. A cell cycles through the machine&apos;s states as the ant visits it.
+							Each character is one step of the machine:{" "}
+							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">
+								R
+							</code>/<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">L</code> turn 90°,{" "}
+							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">
+								R45
+							</code>/<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">L45</code> and{" "}
+							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">
+								R135
+							</code>/<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">L135</code> turn diagonally,
+							{" "}
+							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">U</code> reverses, and{" "}
+							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">C</code>{" "}
+							continues straight. A cell cycles through the machine&apos;s states as the ant visits it.
 						</p>
 						<p className="mt-4 text-[10px] text-faint">
 							Made by{" "}
-							<a className="text-fg underline decoration-[#5a5a5a] underline-offset-2 hover:decoration-fg" href="https://rafa-br34.dev" target="_blank" rel="noopener">
+							<a
+								className="text-fg underline decoration-[#5a5a5a] underline-offset-2 hover:decoration-fg"
+								href="https://rafa-br34.dev"
+								target="_blank"
+								rel="noopener"
+							>
 								rafa_br34
 							</a>
 							. Third-party content belongs to its respective owners.
