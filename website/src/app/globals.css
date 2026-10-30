@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+@theme {
+	/* Surfaces */
+	--color-canvas: #222222;
+	--color-surface: #1a1a1a;
+	--color-surface-raised: #1c1c1c;
+	--color-void: #0d0d0d;
+
+	/* Text */
+	--color-fg: #ffffff;
+	--color-fg-1: #d0d0d0;
+	--color-muted: #b0b0b0;
+	--color-faint: #909090;
+
+	/* Lines and accents */
+	--color-line: #3b3b3b;
+	--color-line-strong: #555555;
+	--color-accent: #20c0c0;
+	--color-accent-bright: #40e0e0;
+	--color-accent-soft: rgb(32 192 192 / 0.1);
+	--color-accent-line: rgb(32 192 192 / 0.45);
+	--color-danger: #e04040;
+	--color-danger-text: #ff9a9a;
+	--color-danger-soft: rgb(224 64 64 / 0.12);
+
+	/* Type */
+	--font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	--font-mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+	--text-2xs: 0.625rem;
+	--text-2xs--line-height: 1.4;
+	--text-3xs: 0.5625rem;
+	--text-3xs--line-height: 1.4;
+
+	/* Shape */
+	--radius-panel: 8px;
+	--radius-control: 4px;
+
+	--shadow-panel: 0 24px 70px rgb(0 0 0 / 0.38);
+
+	--animate-run-pulse: run-pulse 2s ease-out infinite;
+}
+
+@keyframes run-pulse {
+	0% {
+		box-shadow: 0 0 0 0 rgb(32 192 192 / 0.45);
+	}
+
+	70% {
+		box-shadow: 0 0 0 6px rgb(32 192 192 / 0);
+	}
+
+	100% {
+		box-shadow: 0 0 0 6px rgb(32 192 192 / 0);
+	}
+}
+
+@layer base {
+	:root {
+		color-scheme: dark;
+	}
+
+	* {
+		border-color: var(--color-line);
+	}
+
+	html {
+		-webkit-text-size-adjust: 100%;
+	}
+
+	body {
+		margin: 0;
+		background: var(--color-canvas);
+		color: var(--color-fg);
+		font-family: var(--font-sans);
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+
+	::selection {
+		background: rgb(32 192 192 / 0.32);
+		color: var(--color-fg);
+	}
+
+	kbd {
+		display: inline-flex;
+		align-items: center;
+		height: 18px;
+		padding: 0 5px;
+		border: 1px solid var(--color-line);
+		border-bottom-color: #4d4d4d;
+		border-radius: 3px;
+		background: #191919;
+		color: var(--color-muted);
+		font-family: var(--font-mono);
+		font-size: 9px;
+		line-height: 1;
+	}
+
+	* {
+		scrollbar-width: thin;
+		scrollbar-color: #454545 transparent;
+	}
+
+	::-webkit-scrollbar {
+		width: 10px;
+		height: 10px;
+	}
+
+	::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	::-webkit-scrollbar-thumb {
+		border: 3px solid transparent;
+		border-radius: 999px;
+		background: #454545;
+		background-clip: content-box;
+	}
+
+	::-webkit-scrollbar-thumb:hover {
+		background: #5a5a5a;
+		background-clip: content-box;
+	}
+
+	input[type="number"] {
+		appearance: textfield;
+		-moz-appearance: textfield;
+	}
+
+	input[type="number"]::-webkit-inner-spin-button,
+	input[type="number"]::-webkit-outer-spin-button {
+		margin: 0;
+		-webkit-appearance: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		*::before,
+		*::after {
+			scroll-behavior: auto !important;
+			animation-duration: 0.001ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.001ms !important;
+		}
+	}
+}
+
+@utility page-grid {
+	background-image:
+		linear-gradient(rgb(255 255 255 / 0.032) 1px, transparent 1px),
+		linear-gradient(90deg, rgb(255 255 255 / 0.032) 1px, transparent 1px);
+	background-size: 48px 48px;
+	-webkit-mask-image: radial-gradient(ellipse 120% 80% at 50% 0%, #000 10%, transparent 78%);
+	mask-image: radial-gradient(ellipse 120% 80% at 50% 0%, #000 10%, transparent 78%);
+}
+
+@utility site-background {
+	background:
+		radial-gradient(1000px 560px at 10% -12%, rgb(32 192 192 / 0.08), transparent 62%),
+		radial-gradient(900px 620px at 100% -8%, rgb(255 16 255 / 0.045), transparent 58%);
+}
+
+@utility dot-grid {
+	background-image:
+		radial-gradient(circle at 50% 45%, rgb(32 192 192 / 0.045), transparent 62%),
+		radial-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1px);
+	background-size: auto, 20px 20px;
+}
+
+@utility canvas-glow {
+	box-shadow:
+		0 30px 80px rgb(0 0 0 / 0.55),
+		0 0 0 1px rgb(0 0 0 / 0.65);
+}
+
+@utility viewport-glow {
+	box-shadow: inset 0 0 110px rgb(0 0 0 / 0.55);
+}

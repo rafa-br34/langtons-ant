@@ -47,26 +47,23 @@ uint64_t read_timestamp_counter() {
 	__asm__ volatile("lfence; rdtsc" : "=a"(lo), "=d"(hi)::"memory");
 	return ((uint64_t)hi << 32) | lo;
 #else
+	#error "Didn't find a viable high resolution monotonic counter"
 	return 0;
 #endif
 }
 
-// Layout translation: maps logical grid coordinates (x, y) to a linear memory index.
-// Currently row-major; the body is swapped out when a space-filling curve layout is added.
 size_t grid_index(const glm::i64vec2& grid_size, SizeType x, SizeType y) {
 	return FLATTEN_2D(x, y, grid_size.x);
 }
 
-// Layout-independent checksum of the logical grid state (FNV-1a). Iterates logical
-// coordinates through the layout translation instead of raw memory, so the checksum
-// stays stable across memory layouts (e.g. space-filling curves).
+// FNV-1a
 uint64_t state_checksum(const SimulationState& simulation) {
-	uint64_t checksum = 14695981039346656037ull; // FNV-1a offset basis
+	uint64_t checksum = 0xCBF29CE484222325ull;
 
 	for (SizeType y = 0; y < simulation.canvas_size.y; y++) {
 		for (SizeType x = 0; x < simulation.canvas_size.x; x++) {
 			checksum ^= simulation.canvas_pointer[grid_index(simulation.canvas_size, x, y)];
-			checksum *= 1099511628211ull; // FNV-1a prime
+			checksum *= 0x100000001B3ull;
 		}
 	}
 

@@ -1,0 +1,149 @@
+export interface Camera {
+	x: number
+	y: number
+	z: number
+}
+
+export interface Renderer {
+	resize: (width: number, height: number) => void
+	draw: (camera: Camera, width: number, height: number, grid: Uint8Array, upload: boolean) => void
+	dispose: () => void
+}
+
+function compileShader(gl: WebGL2RenderingContext, source: string, type: number) {
+	const shader = gl.createShader(type)
+	if (!shader) {
+		throw new Error("Unable to create a WebGL shader")
+	}
+
+	gl.shaderSource(shader, source)
+	gl.compileShader(shader)
+
+	if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+		const log = gl.getShaderInfoLog(shader)
+		gl.deleteShader(shader)
+		throw new Error(`Shader compilation failed: ${log ?? "unknown error"}`)
+	}
+
+	return shader
+}
+
+function createProgram(gl: WebGL2RenderingContext, vertexSource: string, fragmentSource: string) {
+	const vertexShader = compileShader(gl, vertexSource, gl.VERTEX_SHADER)
+	const fragmentShader = compileShader(gl, fragmentSource, gl.FRAGMENT_SHADER)
+	const program = gl.createProgram()
+
+	if (!program) {
+		throw new Error("Unable to create a WebGL program")
+	}
+
+	gl.attachShader(program, vertexShader)
+	gl.attachShader(program, fragmentShader)
+	gl.linkProgram(program)
+
+	gl.deleteShader(vertexShader)
+	gl.deleteShader(fragmentShader)
+
+	if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+		const log = gl.getProgramInfoLog(program)
+		gl.deleteProgram(program)
+		throw new Error(`Program linking failed: ${log ?? "unknown error"}`)
+	}
+
+	return program
+}
+
+export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, fragmentSource: string): Renderer {
+	const gl = canvas.getContext("webgl2", {
+		antialias: true,
+		premultipliedAlpha: false,
+		preserveDrawingBuffer: true
+	})
+
+	if (!gl) {
+		throw new Error("WebGL2 is not available in this browser")
+	}
+
+	const program = createProgram(gl, vertexSource, fragmentSource)
+	const positionLocation = gl.getAttribLocation(program, "a_VertexPosition")
+	const positionUniform = gl.getUniformLocation(program, "u_Position")
+	const gridSizeUniform = gl.getUniformLocation(program, "u_GridSize")
+
+	const vertices = new Float32Array([
+		-1, -1,
+		-1, 1,
+		1, -1,
+
+		-1, 1,
+		1, -1,
+		1, 1
+	])
+
+	const vertexBuffer = gl.createBuffer()
+	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
+	gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
+
+	const vertexArray = gl.createVertexArray()
+	gl.bindVertexArray(vertexArray)
+	gl.enableVertexAttribArray(positionLocation)
+	gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+
+	const texture = gl.createTexture()
+	gl.bindTexture(gl.TEXTURE_2D, texture)
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+	gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1)
+
+	let disposed = false
+
+	return {
+		resize(width, height) {
+			gl.viewport(0, 0, width, height)
+		},
+
+		draw(camera, width, height, grid, upload) {
+			if (disposed) { return }
+
+			gl.clearColor(0, 0, 0, 0)
+			gl.clear(gl.COLOR_BUFFER_BIT)
+
+			gl.useProgram(program)
+			gl.uniform3fv(positionUniform, [
+				camera.x * (1 + camera.z),
+				camera.y * (1 + camera.z),
+				camera.z
+			])
+			gl.uniform2fv(gridSizeUniform, [width, height])
+
+			gl.activeTexture(gl.TEXTURE0)
+			gl.bindTexture(gl.TEXTURE_2D, texture)
+
+			if (upload) {
+				gl.texImage2D(
+					gl.TEXTURE_2D,
+					0,
+					gl.R8UI,
+					width,
+					height,
+					0,
+					gl.RED_INTEGER,
+					gl.UNSIGNED_BYTE,
+					grid
+				)
+			}
+
+			gl.bindVertexArray(vertexArray)
+			gl.drawArrays(gl.TRIANGLES, 0, 6)
+		},
+
+		dispose() {
+			if (disposed) { return }
+			disposed = true
+
+			gl.deleteProgram(program)
+			gl.deleteBuffer(vertexBuffer)
+			gl.deleteVertexArray(vertexArray)
+			gl.deleteTexture(texture)
+		}
+	}
+}
