@@ -1,12 +1,14 @@
 export interface Camera {
+	/** Horizontal center of the view in grid space (0..1). */
 	x: number
+	/** Vertical center of the view in grid space (0..1). */
 	y: number
-	z: number
+	zoom: number
 }
 
 export interface Renderer {
 	resize: (width: number, height: number) => void
-	draw: (camera: Camera, width: number, height: number, grid: Uint8Array, upload: boolean) => void
+	draw: (camera: Camera, gridWidth: number, gridHeight: number, grid: Uint8Array, upload: boolean) => void
 	dispose: () => void
 }
 
@@ -57,7 +59,7 @@ export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, 
 	const gl = canvas.getContext("webgl2", {
 		antialias: true,
 		premultipliedAlpha: false,
-		preserveDrawingBuffer: true,
+		preserveDrawingBuffer: true
 	})
 
 	if (!gl) {
@@ -66,23 +68,18 @@ export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, 
 
 	const program = createProgram(gl, vertexSource, fragmentSource)
 	const positionLocation = gl.getAttribLocation(program, "a_VertexPosition")
-	const positionUniform = gl.getUniformLocation(program, "u_Position")
-	const gridSizeUniform = gl.getUniformLocation(program, "u_GridSize")
+	const centerUniform = gl.getUniformLocation(program, "u_Center")
+	const zoomUniform = gl.getUniformLocation(program, "u_Zoom")
+	const scaleUniform = gl.getUniformLocation(program, "u_Scale")
 
 	const vertices = new Float32Array([
-		-1,
-		-1,
-		-1,
-		1,
-		1,
-		-1,
+		-1, -1,
+		-1, 1,
+		1, -1,
 
-		-1,
-		1,
-		1,
-		-1,
-		1,
-		1,
+		-1, 1,
+		1, -1,
+		1, 1
 	])
 
 	const vertexBuffer = gl.createBuffer()
@@ -100,26 +97,40 @@ export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, 
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 	gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1)
 
+	let canvasWidth = 1
+	let canvasHeight = 1
 	let disposed = false
 
 	return {
 		resize(width, height) {
-			gl.viewport(0, 0, width, height)
+			canvasWidth = Math.max(1, width)
+			canvasHeight = Math.max(1, height)
+			gl.viewport(0, 0, canvasWidth, canvasHeight)
 		},
 
-		draw(camera, width, height, grid, upload) {
-			if (disposed) return
+		draw(camera, gridWidth, gridHeight, grid, upload) {
+			if (disposed) { return }
+
+			const canvasAspect = canvasWidth / canvasHeight
+			const gridAspect = gridWidth / gridHeight
+
+			let scaleX = 1
+			let scaleY = 1
+
+			if (canvasAspect > gridAspect) {
+				scaleX = gridAspect / canvasAspect
+			}
+			else {
+				scaleY = canvasAspect / gridAspect
+			}
 
 			gl.clearColor(0, 0, 0, 0)
 			gl.clear(gl.COLOR_BUFFER_BIT)
 
 			gl.useProgram(program)
-			gl.uniform3fv(positionUniform, [
-				camera.x * (1 + camera.z),
-				camera.y * (1 + camera.z),
-				camera.z,
-			])
-			gl.uniform2fv(gridSizeUniform, [width, height])
+			gl.uniform2f(centerUniform, camera.x, camera.y)
+			gl.uniform1f(zoomUniform, camera.zoom)
+			gl.uniform2f(scaleUniform, scaleX, scaleY)
 
 			gl.activeTexture(gl.TEXTURE0)
 			gl.bindTexture(gl.TEXTURE_2D, texture)
@@ -129,12 +140,12 @@ export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, 
 					gl.TEXTURE_2D,
 					0,
 					gl.R8UI,
-					width,
-					height,
+					gridWidth,
+					gridHeight,
 					0,
 					gl.RED_INTEGER,
 					gl.UNSIGNED_BYTE,
-					grid,
+					grid
 				)
 			}
 
@@ -143,13 +154,13 @@ export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, 
 		},
 
 		dispose() {
-			if (disposed) return
+			if (disposed) { return }
 			disposed = true
 
 			gl.deleteProgram(program)
 			gl.deleteBuffer(vertexBuffer)
 			gl.deleteVertexArray(vertexArray)
 			gl.deleteTexture(texture)
-		},
+		}
 	}
 }

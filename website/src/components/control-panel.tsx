@@ -13,20 +13,31 @@ import {
 	ArrowUp,
 	ArrowUpLeft,
 	ArrowUpRight,
+	Bug,
 	ChevronRight,
 	Dices,
 	ExternalLink,
 	Link2,
 	Plus,
-	Shuffle,
+	Shuffle
 } from "lucide-react"
 import { type ReactNode, useEffect, useState } from "react"
 
+import { AboutDialog } from "@/components/about-dialog"
+import { GithubIcon } from "@/components/github-icon"
 import { NumberInput } from "@/components/number-input"
 import { Button } from "@/components/ui/button"
-import { type AntConfig, DIRECTION_VALUES, directionLabel, type DirectionValue, parseStateMachine, stringifyStateMachine } from "@/lib/ant"
+import {
+	type AntConfig,
+	DIRECTION_VALUES,
+	directionLabel,
+	type DirectionValue,
+	parseStateMachine,
+	stringifyStateMachine
+} from "@/lib/ant"
 import { MAX_GRID, type WorldConfig } from "@/lib/share"
 import { MAX_IPF } from "@/lib/simulation"
+import type { SimulationStats } from "@/lib/stats"
 import { cn } from "@/lib/utils"
 
 interface ControlPanelProps {
@@ -35,6 +46,7 @@ interface ControlPanelProps {
 	selectedAnt: AntConfig | null
 	running: boolean
 	ipf: number
+	stats: SimulationStats
 	onSelectAnt: (id: string | null) => void
 	onAddAnt: () => void
 	onCloneAnt: () => void
@@ -53,6 +65,15 @@ const RULE_PRESETS = [
 	{ label: "LRRRRRLLR", rules: parseStateMachine("LRRRRRLLR").rules },
 	{ label: "RLR", rules: parseStateMachine("RLR").rules },
 ]
+
+const STAT_ITEMS = [
+	{ key: "iterations", label: "Iteration" },
+	{ key: "liveAnts", label: "Live ants" },
+	{ key: "fps", label: "FPS / IPS" },
+	{ key: "buffer", label: "Buffer" },
+	{ key: "bandwidth", label: "CPU → GPU" },
+	{ key: "camera", label: "View" },
+] as const
 
 const TAB_CLASS = cn(
 	"inline-flex h-[30px] flex-1 items-center justify-center gap-1.5 rounded-[4px] border border-transparent px-2",
@@ -139,6 +160,7 @@ export function ControlPanel({
 	selectedAnt,
 	running,
 	ipf,
+	stats,
 	onSelectAnt,
 	onAddAnt,
 	onCloneAnt,
@@ -176,15 +198,62 @@ export function ControlPanel({
 		onReplaceRules(parsedRules.rules)
 	}
 
+	const statValues: Record<(typeof STAT_ITEMS)[number]["key"], string> = {
+		iterations: stats.iterations.toLocaleString("en-US"),
+		liveAnts: String(stats.liveAnts),
+		fps: `${stats.fps.toFixed(2)}/${stats.ips.toFixed(2)}`,
+		buffer: stats.buffer,
+		bandwidth: stats.bandwidth,
+		camera: `${Math.round(stats.camera.x)}, ${Math.round(stats.camera.y)} · ${stats.camera.zoom.toFixed(2)}×`,
+	}
+
 	return (
 		<aside
 			aria-label="Simulation settings"
-			className="flex min-h-0 flex-col overflow-hidden rounded-panel border border-line bg-gradient-to-b from-[#1c1c1c]/95 to-[#171717]/95 shadow-panel max-lg:flex-none"
+			className="flex min-h-0 flex-col overflow-hidden bg-[#151515] max-lg:flex-none lg:border-l lg:border-line"
 		>
-			<div className="shrink-0 border-b border-line bg-white/[0.014] px-4 py-3.5">
-				<h2 className="text-sm font-semibold tracking-[-0.01em] text-fg">Controls</h2>
-				<p className="mt-0.5 text-[11px] leading-snug text-faint">Shape the world, then give the ants a rule set to follow.</p>
+			<div className="flex shrink-0 items-center justify-between gap-2 border-b border-line px-3.5 py-3">
+				<div className="flex min-w-0 items-center gap-2.5">
+					<span className="grid size-8 shrink-0 place-items-center rounded-control border border-line bg-gradient-to-br from-[#2a2a2a] to-[#191919] text-accent shadow-[inset_0_1px_0_rgb(255_255_255/0.06)]">
+						<Bug className="size-4" aria-hidden />
+					</span>
+					<div className="min-w-0">
+						<span className="block truncate text-[13px] leading-tight font-semibold tracking-[-0.01em] text-fg">
+							Langton&apos;s Ant
+						</span>
+						<span className="block font-mono text-[8.5px] leading-tight tracking-[0.13em] text-faint uppercase">
+							Cellular automata lab
+						</span>
+					</div>
+				</div>
+
+				<div className="flex shrink-0 items-center gap-1">
+					<AboutDialog />
+					<a
+						href="https://github.com/rafa-br34/LangtonsAnt"
+						target="_blank"
+						rel="noopener"
+						aria-label="View source on GitHub"
+						title="View source on GitHub"
+						className="grid size-8 place-items-center rounded-control border border-line bg-white/[0.03] text-muted transition-colors hover:border-line-strong hover:bg-white/[0.06] hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+					>
+						<GithubIcon className="size-4" />
+					</a>
+				</div>
 			</div>
+
+			<dl className="grid shrink-0 grid-cols-3 gap-px border-b border-line bg-line" aria-label="Simulation statistics">
+				{STAT_ITEMS.map((item) => (
+					<div key={item.key} className="min-w-0 bg-[#171717] px-2.5 py-1.5">
+						<dt className="truncate font-sans text-[8.5px] tracking-[0.1em] text-faint uppercase">
+							{item.label}
+						</dt>
+						<dd className="truncate font-mono text-[10.5px] text-fg-1 tabular-nums">
+							{statValues[item.key]}
+						</dd>
+					</div>
+				))}
+			</dl>
 
 			<Tabs.Root defaultValue="ant" className="flex min-h-0 flex-1 flex-col max-lg:flex-none">
 				<Tabs.List className="flex shrink-0 gap-[3px] border-b border-line bg-black/15 p-1.5" aria-label="Control panels">
@@ -562,15 +631,25 @@ export function ControlPanel({
 					<Link2 className="size-3" aria-hidden />
 					Copy link
 				</Button>
-				<a
-					className="inline-flex items-center gap-1 px-1 py-1 text-[10.5px] text-faint transition-colors hover:text-fg"
-					href="https://github.com/rafa-br34/LangtonsAnt"
-					target="_blank"
-					rel="noopener"
-				>
-					Source
-					<ExternalLink className="size-2.5" aria-hidden />
-				</a>
+				<div className="flex items-center gap-3">
+					<a
+						className="inline-flex items-center gap-1 px-1 py-1 text-[10.5px] text-faint transition-colors hover:text-fg"
+						href="https://github.com/rafa-br34/LangtonsAnt#readme"
+						target="_blank"
+						rel="noopener"
+					>
+						Docs
+						<ExternalLink className="size-2.5" aria-hidden />
+					</a>
+					<a
+						className="px-1 py-1 text-[10.5px] text-faint transition-colors hover:text-fg"
+						href="https://en.wikipedia.org/wiki/Langton%27s_ant"
+						target="_blank"
+						rel="noopener"
+					>
+						Wikipedia
+					</a>
+				</div>
 			</div>
 		</aside>
 	)

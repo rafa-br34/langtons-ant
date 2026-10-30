@@ -71,7 +71,7 @@ The interface is a small lab bench:
 - **Copy link** stores the full world in the URL so a run can be shared.
 - **Save PNG** downloads a snapshot of the current frame.
 
-Keyboard shortcuts: `Space` start/pause, `S` step, `R` reset, `C` reset camera and
+Keyboard shortcuts: `Space` start/pause, `S` step, `R` reset, `C` reset the view and
 `?` for the about dialog.
 
 The page is deployed by [`.github/workflows/static.yml`](.github/workflows/static.yml), which installs the

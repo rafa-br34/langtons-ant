@@ -29,33 +29,48 @@ function worldSignature(world: WorldConfig) {
 }
 
 async function copyText(text: string) {
-	if (navigator.clipboard?.writeText) {
-		try {
-			await navigator.clipboard.writeText(text)
-			return true
-		}
-		catch {
-			// Fall back to the legacy clipboard path below.
-		}
+	if (!navigator.clipboard?.writeText) {
+		return false
 	}
 
-	const area = document.createElement("textarea")
-	area.value = text
-	area.setAttribute("readonly", "")
-	area.style.position = "fixed"
-	area.style.opacity = "0"
-	document.body.append(area)
-	area.select()
-
 	try {
-		return document.execCommand("copy")
+		await navigator.clipboard.writeText(text)
+		return true
 	}
 	catch {
 		return false
 	}
-	finally {
-		area.remove()
+}
+
+function viewScale(canvasWidth: number, canvasHeight: number, gridWidth: number, gridHeight: number) {
+	const canvasAspect = canvasWidth / Math.max(1, canvasHeight)
+	const gridAspect = gridWidth / Math.max(1, gridHeight)
+
+	if (canvasAspect > gridAspect) {
+		return { x: gridAspect / canvasAspect, y: 1 }
 	}
+
+	return { x: 1, y: canvasAspect / gridAspect }
+}
+
+function clampCamera(camera: Camera, canvas: HTMLCanvasElement | null, gridWidth: number, gridHeight: number) {
+	if (!canvas || gridWidth <= 0 || gridHeight <= 0) {
+		return
+	}
+
+	const scale = viewScale(canvas.width, canvas.height, gridWidth, gridHeight)
+	const halfX = 0.5 / Math.max(0.0001, camera.zoom * scale.x)
+	const halfY = 0.5 / Math.max(0.0001, camera.zoom * scale.y)
+
+	// When the whole grid fits, keep the center inside the grid bounds so the
+	// view can still be dragged around a little instead of feeling frozen.
+	const minX = halfX >= 0.5 ? 0 : halfX
+	const maxX = halfX >= 0.5 ? 1 : 1 - halfX
+	const minY = halfY >= 0.5 ? 0 : halfY
+	const maxY = halfY >= 0.5 ? 1 : 1 - halfY
+
+	camera.x = clamp(camera.x, minX, maxX)
+	camera.y = clamp(camera.y, minY, maxY)
 }
 
 export function Simulator() {
@@ -76,7 +91,7 @@ export function Simulator() {
 		simRef.current = new Simulation()
 	}
 
-	const cameraRef = useRef<Camera>({ x: 0, y: 0, z: 0 })
+	const cameraRef = useRef<Camera>({ x: 0.5, y: 0.5, zoom: 1 })
 	const runningRef = useRef(false)
 	const ipfRef = useRef(ipf)
 	const fpsRef = useRef(0)
@@ -130,9 +145,9 @@ export function Simulator() {
 			buffer: measureData(sim.bufferBytes),
 			bandwidth: isRunning ? `${measureData(sim.bufferBytes * fps)}/s` : "0B/s",
 			camera: {
-				x: round(cameraRef.current.x, 3),
-				y: round(cameraRef.current.y, 3),
-				z: round(cameraRef.current.z, 3),
+				x: round(cameraRef.current.x * sim.width, 1),
+				y: round(cameraRef.current.y * sim.height, 1),
+				zoom: round(cameraRef.current.zoom, 2),
 			},
 		})
 	}, [])
@@ -169,6 +184,7 @@ export function Simulator() {
 
 		sim.resize(world.width, world.height)
 		sim.setAnts(world.ants)
+		clampCamera(cameraRef.current, canvasRef.current, sim.width, sim.height)
 
 		if (!seededRef.current) {
 			seededRef.current = true
@@ -222,10 +238,18 @@ export function Simulator() {
 				const renderer = createRenderer(canvas, vertex, fragment)
 				rendererRef.current = renderer
 
-				const width = Math.max(1, Math.floor(canvas.getBoundingClientRect().width))
+				const rect = canvas.getBoundingClientRect()
+				const width = Math.max(1, Math.round(rect.width))
+				const height = Math.max(1, Math.round(rect.height))
 				canvas.width = width
-				canvas.height = width
-				renderer.resize(width, width)
+				canvas.height = height
+				renderer.resize(width, height)
+
+				const sim = simRef.current
+				if (sim) {
+					clampCamera(cameraRef.current, canvas, sim.width, sim.height)
+					refreshStats()
+				}
 
 				dirtyRef.current = true
 				setRendererReady(true)
@@ -254,14 +278,23 @@ export function Simulator() {
 
 		const target = canvas.parentElement ?? canvas
 		const observer = new ResizeObserver(() => {
-			const width = Math.max(1, Math.floor(canvas.getBoundingClientRect().width))
-			if (canvas.width === width && canvas.height === width) {
+			const rect = canvas.getBoundingClientRect()
+			const width = Math.max(1, Math.round(rect.width))
+			const height = Math.max(1, Math.round(rect.height))
+			if (canvas.width === width && canvas.height === height) {
 				return
 			}
 
 			canvas.width = width
-			canvas.height = width
-			rendererRef.current?.resize(width, width)
+			canvas.height = height
+			rendererRef.current?.resize(width, height)
+
+			const sim = simRef.current
+			if (sim) {
+				clampCamera(cameraRef.current, canvas, sim.width, sim.height)
+				refreshStats()
+			}
+
 			dirtyRef.current = true
 		})
 
@@ -387,7 +420,7 @@ export function Simulator() {
 	}, [refreshStats])
 
 	const resetCamera = useCallback(() => {
-		cameraRef.current = { x: 0, y: 0, z: 0 }
+		cameraRef.current = { x: 0.5, y: 0.5, zoom: 1 }
 		refreshStats()
 	}, [refreshStats])
 
@@ -522,17 +555,39 @@ export function Simulator() {
 		setIpf(value)
 	}
 
-	// Mouse and wheel camera controls.
+	// Pointer panning, cursor-anchored zoom and camera clamping.
 	useEffect(() => {
 		const canvas = canvasRef.current
 		if (!canvas) {
 			return
 		}
-
 		const canvasElement: HTMLCanvasElement = canvas
 
+		let dragging = false
+		let lastX = 0
+		let lastY = 0
+		let activePointer = -1
+
+		function handlePointerDown(event: PointerEvent) {
+			if (event.button !== 0) {
+				return
+			}
+
+			dragging = true
+			lastX = event.clientX
+			lastY = event.clientY
+			activePointer = event.pointerId
+
+			try {
+				canvasElement.setPointerCapture(event.pointerId)
+			}
+			catch {
+				// Some browsers reject capture for synthetic or already-released pointers.
+			}
+		}
+
 		function handlePointerMove(event: PointerEvent) {
-			if ((event.buttons & 1) === 0) {
+			if (!dragging) {
 				return
 			}
 
@@ -542,36 +597,76 @@ export function Simulator() {
 			}
 
 			const rect = canvasElement.getBoundingClientRect()
-			const ratioX = sim.width / sim.height
-			const ratioY = sim.height / sim.width
-			const dx = event.movementX / (rect.width / 2)
-			const dy = event.movementY / (rect.height / 2)
+			const scale = viewScale(rect.width, rect.height, sim.width, sim.height)
+			const camera = cameraRef.current
 
-			if (ratioX > ratioY) {
-				cameraRef.current.x += dx / ratioX
-				cameraRef.current.y -= dy
-			}
-			else {
-				cameraRef.current.x += dx
-				cameraRef.current.y -= dy / ratioY
-			}
+			const dx = event.clientX - lastX
+			const dy = event.clientY - lastY
+			lastX = event.clientX
+			lastY = event.clientY
 
+			camera.x -= (dx / Math.max(1, rect.width)) / (camera.zoom * scale.x)
+			camera.y -= (dy / Math.max(1, rect.height)) / (camera.zoom * scale.y)
+
+			clampCamera(camera, canvasElement, sim.width, sim.height)
 			refreshStats()
+		}
+
+		function handlePointerEnd(event: PointerEvent) {
+			if (!dragging) {
+				return
+			}
+
+			dragging = false
+
+			if (event.pointerId === activePointer && canvasElement.hasPointerCapture(event.pointerId)) {
+				try {
+					canvasElement.releasePointerCapture(event.pointerId)
+				}
+				catch {
+					// Ignore a pointer that was already released by the browser.
+				}
+			}
+
+			activePointer = -1
 		}
 
 		function handleWheel(event: WheelEvent) {
 			event.preventDefault()
+
+			const sim = simRef.current
+			if (!sim) {
+				return
+			}
+
 			const rect = canvasElement.getBoundingClientRect()
-			const zoom = (event.deltaY / (rect.height / 2)) * 0.2
-			cameraRef.current.z += (cameraRef.current.z + 1) * zoom
+			const scale = viewScale(rect.width, rect.height, sim.width, sim.height)
+			const camera = cameraRef.current
+			const oldZoom = camera.zoom
+			const newZoom = clamp(oldZoom * Math.exp(-event.deltaY * 0.0015), 0.5, 64)
+
+			const cursorX = (event.clientX - rect.left) / Math.max(1, rect.width)
+			const cursorY = (event.clientY - rect.top) / Math.max(1, rect.height)
+
+			camera.x += (cursorX - 0.5) * (1 / oldZoom - 1 / newZoom) / scale.x
+			camera.y += (cursorY - 0.5) * (1 / oldZoom - 1 / newZoom) / scale.y
+			camera.zoom = newZoom
+
+			clampCamera(camera, canvasElement, sim.width, sim.height)
 			refreshStats()
 		}
 
+		canvasElement.addEventListener("pointerdown", handlePointerDown)
 		canvasElement.addEventListener("pointermove", handlePointerMove)
+		canvasElement.addEventListener("pointerup", handlePointerEnd)
+		canvasElement.addEventListener("pointercancel", handlePointerEnd)
 		canvasElement.addEventListener("wheel", handleWheel, { passive: false })
 
 		return () => {
+			canvasElement.removeEventListener("pointerdown", handlePointerDown)
 			canvasElement.removeEventListener("pointermove", handlePointerMove)
+			canvasElement.removeEventListener("pointerup", handlePointerEnd)
+			canvasElement.removeEventListener("pointercancel", handlePointerEnd)
 			canvasElement.removeEventListener("wheel", handleWheel)
 		}
 	}, [refreshStats])
@@ -620,11 +715,10 @@ export function Simulator() {
 
 	return (
 		<>
-			<main className="relative z-10 mx-auto grid w-full max-w-[1920px] flex-1 grid-cols-1 gap-3 p-3 lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_390px] lg:gap-3.5 lg:p-3.5">
+			<main className="grid h-full w-full grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px] max-lg:h-auto">
 				<Stage
 					canvasRef={canvasRef}
 					running={running}
-					stats={stats}
 					error={error}
 					onToggleRun={toggleRunning}
 					onStep={step}
@@ -638,6 +732,7 @@ export function Simulator() {
 					selectedAnt={selectedAnt}
 					running={running}
 					ipf={ipf}
+					stats={stats}
 					onSelectAnt={setSelectedId}
 					onAddAnt={addAnt}
 					onCloneAnt={cloneAnt}
@@ -654,7 +749,7 @@ export function Simulator() {
 				role="status"
 				aria-live="polite"
 				className={cn(
-					"fixed bottom-14 left-1/2 z-[100] max-w-[calc(100vw-32px)] -translate-x-1/2 rounded-panel border border-line-strong bg-[#1b1b1b] px-3 py-2 text-[11px] text-fg shadow-[0_16px_44px_rgb(0_0_0/0.5)] transition-opacity duration-150",
+					"fixed bottom-24 left-1/2 z-[100] max-w-[calc(100vw-32px)] -translate-x-1/2 rounded-panel border border-line-strong bg-[#1b1b1b] px-3 py-2 text-[11px] text-fg shadow-[0_16px_44px_rgb(0_0_0/0.5)] transition-opacity duration-150",
 					toast ? "opacity-100" : "pointer-events-none opacity-0",
 				)}
 			>
