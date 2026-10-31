@@ -19,7 +19,7 @@ import {
 	ExternalLink,
 	Link2,
 	Plus,
-	Shuffle
+	Shuffle,
 } from "lucide-react"
 import { type ReactNode, useEffect, useState } from "react"
 
@@ -27,14 +27,7 @@ import { AboutDialog } from "@/components/about-dialog"
 import { GithubIcon } from "@/components/github-icon"
 import { NumberInput } from "@/components/number-input"
 import { Button } from "@/components/ui/button"
-import {
-	type AntConfig,
-	DIRECTION_VALUES,
-	directionLabel,
-	type DirectionValue,
-	parseStateMachine,
-	stringifyStateMachine
-} from "@/lib/ant"
+import { type AntConfig, DIRECTION_VALUES, directionLabel, type DirectionValue, parseStateMachine, stringifyStateMachine } from "@/lib/ant"
 import { MAX_GRID, type WorldConfig } from "@/lib/share"
 import { MAX_IPF } from "@/lib/simulation"
 import type { SimulationStats } from "@/lib/stats"
@@ -47,6 +40,7 @@ interface ControlPanelProps {
 	running: boolean
 	ipf: number
 	stats: SimulationStats
+	antialias: boolean
 	onSelectAnt: (id: string | null) => void
 	onAddAnt: () => void
 	onCloneAnt: () => void
@@ -55,6 +49,7 @@ interface ControlPanelProps {
 	onReplaceRules: (rules: DirectionValue[]) => void
 	onResize: (width: number, height: number) => void
 	onIpfChange: (value: number) => void
+	onAntialiasChange: (value: boolean) => void
 	onCopyLink: () => void
 }
 
@@ -161,6 +156,7 @@ export function ControlPanel({
 	running,
 	ipf,
 	stats,
+	antialias,
 	onSelectAnt,
 	onAddAnt,
 	onCloneAnt,
@@ -169,6 +165,7 @@ export function ControlPanel({
 	onReplaceRules,
 	onResize,
 	onIpfChange,
+	onAntialiasChange,
 	onCopyLink,
 }: ControlPanelProps) {
 	const [rulesDraft, setRulesDraft] = useState("RL")
@@ -257,10 +254,9 @@ export function ControlPanel({
 
 			<Tabs.Root defaultValue="ant" className="flex min-h-0 flex-1 flex-col max-lg:flex-none">
 				<Tabs.List className="flex shrink-0 gap-[3px] border-b border-line bg-black/15 p-1.5" aria-label="Control panels">
-					<Tabs.Tab value="world" className={TAB_CLASS}>World</Tabs.Tab>
-					<Tabs.Tab value="ant" className={TAB_CLASS}>Ant</Tabs.Tab>
-					<Tabs.Tab value="ants" className={TAB_CLASS}>
-						Ants
+					<Tabs.Tab value="simulation" className={TAB_CLASS}>Simulation</Tabs.Tab>
+					<Tabs.Tab value="ant" className={TAB_CLASS}>
+						Ant
 						<span className="inline-grid min-w-4 place-items-center rounded-full border border-line px-1 font-mono text-[8.5px] text-faint">
 							{world.ants.length}
 						</span>
@@ -268,7 +264,12 @@ export function ControlPanel({
 				</Tabs.List>
 
 				<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain max-lg:overflow-visible">
-					<Tabs.Panel value="world" className="p-4">
+					<Tabs.Panel value="simulation" className="p-4">
+						<div className="mb-2.5 flex items-center gap-2">
+							<span className="font-mono text-[9px] tracking-[0.12em] text-faint uppercase">World</span>
+							<span className="h-px flex-1 bg-line" />
+						</div>
+
 						<p className="mb-3.5 text-[10px] leading-relaxed text-faint">
 							The grid the ant walks. Resizing the world resets the run; up to {MAX_GRID.toLocaleString("en-US")} cells per side.
 						</p>
@@ -333,241 +334,23 @@ export function ControlPanel({
 								))}
 							</ToggleGroup>
 						</div>
+
+						<div className="my-4 flex items-center gap-2">
+							<span className="font-mono text-[9px] tracking-[0.12em] text-faint uppercase">Graphics</span>
+							<span className="h-px flex-1 bg-line" />
+						</div>
+
+						<SwitchRow
+							title="Antialiasing"
+							description="4×4 shader supersampling"
+							checked={antialias}
+							disabled={false}
+							onCheckedChange={onAntialiasChange}
+						/>
 					</Tabs.Panel>
 
 					<Tabs.Panel value="ant" className="p-4">
-						<div className="mb-3 flex items-center justify-between gap-2 border-b border-white/[0.06] pb-2.5">
-							<span className="font-mono text-[9px] tracking-[0.12em] text-faint uppercase">Editing</span>
-							<Badge>{selectedAnt ? `Ant ${selectedIndex + 1}` : "None"}</Badge>
-						</div>
-
-						{!selectedAnt
-							? (
-								<p className="mb-3 rounded-control border border-dashed border-line px-3 py-2 text-[10px] leading-relaxed text-faint">
-									No ant selected. Pick one in the Ants tab, or add a new ant.
-								</p>
-							)
-							: null}
-
-						<div className={cn("flex flex-col gap-3", !selectedAnt && "opacity-55")}>
-							<div className="flex flex-col gap-1.5">
-								<span className={LABEL_CLASS}>
-									Position
-									<span className={UNIT_CLASS}>x, y</span>
-								</span>
-								<div className="grid grid-cols-2 gap-2">
-									<NumberInput
-										value={selectedAnt?.x ?? 0}
-										onChange={(x) => onUpdateAnt({ x })}
-										min={0}
-										max={world.width - 1}
-										prefix="X"
-										disabled={!selectedAnt}
-										commitOnBlur
-										ariaLabel="Ant X position"
-									/>
-									<NumberInput
-										value={selectedAnt?.y ?? 0}
-										onChange={(y) => onUpdateAnt({ y })}
-										min={0}
-										max={world.height - 1}
-										prefix="Y"
-										disabled={!selectedAnt}
-										commitOnBlur
-										ariaLabel="Ant Y position"
-									/>
-								</div>
-							</div>
-
-							<div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3">
-								<div className="flex flex-col gap-1.5">
-									<span className={LABEL_CLASS}>
-										Facing
-										<span className={UNIT_CLASS}>8-way</span>
-									</span>
-									<div className="grid grid-cols-3 grid-rows-3 gap-[3px]" role="group" aria-label="Initial ant direction">
-										{DIRECTIONS.map((direction) => {
-											const Active = selectedAnt?.dx === direction.dx && selectedAnt?.dy === direction.dy
-											const Icon = direction.icon
-
-											if (!Icon) {
-												return (
-													<span
-														key={direction.label}
-														aria-hidden
-														className={cn(
-															"grid size-8 place-items-center rounded-[3px] border border-dashed border-line",
-															direction.position,
-														)}
-													>
-														<span className="size-1.5 rounded-full bg-faint" />
-													</span>
-												)
-											}
-
-											return (
-												<button
-													key={direction.label}
-													type="button"
-													disabled={!selectedAnt}
-													aria-label={direction.label}
-													aria-pressed={Active}
-													onClick={() => onUpdateAnt({ dx: direction.dx, dy: direction.dy })}
-													className={cn(
-														"grid size-8 place-items-center rounded-[3px] border border-line bg-black/20 text-faint transition-colors",
-														"hover:border-line-strong hover:bg-white/[0.06] hover:text-fg",
-														"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-														"aria-pressed:border-accent/50 aria-pressed:bg-accent-soft aria-pressed:text-accent-bright",
-														"disabled:pointer-events-none disabled:opacity-35",
-														direction.position,
-													)}
-												>
-													<Icon className="size-3.5" aria-hidden />
-												</button>
-											)
-										})}
-									</div>
-								</div>
-
-								<div className="flex min-w-0 flex-col gap-2.5">
-									<div className="flex flex-col gap-1.5">
-										<span className={LABEL_CLASS}>
-											Step size
-											<span className={UNIT_CLASS}>cells</span>
-										</span>
-										<NumberInput
-											value={selectedAnt?.stepSize ?? 1}
-											onChange={(stepSize) => onUpdateAnt({ stepSize })}
-											min={0}
-											max={100000}
-											disabled={!selectedAnt}
-											commitOnBlur
-											ariaLabel="Ant step size"
-										/>
-									</div>
-									<div className="flex flex-col gap-0.5 rounded-[3px] border border-dashed border-line bg-black/15 px-2 py-1.5">
-										<span className="font-mono text-[8px] tracking-[0.1em] text-faint uppercase">Vector</span>
-										<span className="truncate font-mono text-[9.5px] text-muted">
-											{selectedAnt
-												? `${selectedAnt.dx}, ${selectedAnt.dy} · ${directionLabel(selectedAnt.dx, selectedAnt.dy)}`
-												: "No ant selected"}
-										</span>
-									</div>
-								</div>
-							</div>
-
-							<div className="flex flex-col gap-1.5">
-								<label htmlFor="ant-rules" className={LABEL_CLASS}>
-									State machine
-									<span className={UNIT_CLASS}>R L U C</span>
-								</label>
-								<div className="grid grid-cols-[minmax(0,1fr)_34px_34px] gap-1.5">
-									<div
-										className={cn(
-											"flex h-[34px] items-center rounded-control border border-line bg-black/25 px-2.5 transition-[border-color,box-shadow]",
-											"focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/15",
-											selectedAnt && !rulesValid && "border-danger/65 ring-[3px] ring-danger/10",
-										)}
-									>
-										<input
-											id="ant-rules"
-											type="text"
-											value={rulesDraft}
-											disabled={!selectedAnt}
-											spellCheck={false}
-											autoComplete="off"
-											autoCapitalize="characters"
-											aria-invalid={Boolean(selectedAnt) && !rulesValid}
-											aria-describedby="rules-hint"
-											className="w-full min-w-0 bg-transparent font-mono text-xs tracking-[0.04em] text-accent-bright outline-none disabled:cursor-not-allowed"
-											onChange={(event) => setRulesDraft(event.target.value)}
-											onBlur={applyRules}
-											onKeyDown={(event) => {
-												if (event.key === "Enter") {
-													event.currentTarget.blur()
-												}
-											}}
-										/>
-									</div>
-									<Button
-										size="icon"
-										className="h-[34px] w-[34px]"
-										disabled={!selectedAnt}
-										aria-label="Mutate one rule"
-										title="Mutate one rule"
-										onClick={() => {
-											const next = [...(selectedAnt?.rules ?? [])]
-											if (next.length === 0) return
-											next[Math.floor(Math.random() * next.length)] = DIRECTION_VALUES[Math.floor(Math.random() * DIRECTION_VALUES.length)]!
-											onReplaceRules(next)
-										}}
-									>
-										<Dices className="size-3.5" aria-hidden />
-									</Button>
-									<Button
-										size="icon"
-										className="h-[34px] w-[34px]"
-										disabled={!selectedAnt}
-										aria-label="Randomize the rule set"
-										title="Randomize the rule set"
-										onClick={() => {
-											const length = 4 + Math.floor(Math.random() * 10)
-											const next = Array.from({ length }, () => DIRECTION_VALUES[Math.floor(Math.random() * DIRECTION_VALUES.length)]!)
-											onReplaceRules(next)
-										}}
-									>
-										<Shuffle className="size-3.5" aria-hidden />
-									</Button>
-								</div>
-								<p id="rules-hint" className={cn("text-[9.5px] leading-relaxed text-faint", selectedAnt && !rulesValid && "text-danger-text")}>
-									{rulesHint}
-								</p>
-								<div className="flex flex-wrap gap-1" aria-label="Rule presets">
-									{RULE_PRESETS.map((preset) => {
-										const Active = selectedAnt ? stringifyStateMachine(selectedAnt.rules) === preset.label : false
-										return (
-											<button
-												key={preset.label}
-												type="button"
-												disabled={!selectedAnt}
-												className={cn(CHIP_CLASS, Active && "border-accent/40 bg-accent-soft text-accent-bright")}
-												onClick={() => {
-													setRulesDraft(preset.label)
-													onReplaceRules(preset.rules)
-												}}
-											>
-												{preset.label}
-											</button>
-										)
-									})}
-								</div>
-							</div>
-
-							<div className="flex flex-col gap-1.5">
-								<SwitchRow
-									title="Wrap edges"
-									description="Teleport at borders"
-									checked={selectedAnt?.wrap ?? false}
-									disabled={!selectedAnt}
-									onCheckedChange={(wrap) => onUpdateAnt({ wrap })}
-								/>
-								<SwitchRow
-									title="Enabled"
-									description="Include in run"
-									checked={selectedAnt?.enabled ?? false}
-									disabled={!selectedAnt}
-									onCheckedChange={(enabled) => onUpdateAnt({ enabled })}
-								/>
-							</div>
-						</div>
-					</Tabs.Panel>
-
-					<Tabs.Panel value="ants" className="p-4">
-						<p className="mb-3.5 text-[10px] leading-relaxed text-faint">
-							Add, clone or remove ants. Select one here, then edit it in the Ant tab.
-						</p>
-
-						<div className="mb-2.5 grid grid-cols-[minmax(0,1fr)_auto_auto] gap-1.5">
+						<div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-1.5">
 							<Button onClick={onAddAnt}>
 								<Plus className="size-3.5" aria-hidden />
 								Add ant
@@ -577,7 +360,7 @@ export function ControlPanel({
 						</div>
 
 						<div
-							className="flex max-h-64 min-h-[66px] flex-col gap-1 overflow-y-auto rounded-control border border-line bg-black/15 p-1"
+							className="mt-2 flex max-h-40 min-h-[66px] flex-col gap-1 overflow-y-auto rounded-control border border-line bg-black/15 p-1"
 							aria-label="Ant list"
 						>
 							{world.ants.length === 0
@@ -610,6 +393,237 @@ export function ControlPanel({
 									})
 								)}
 						</div>
+
+						{world.ants.length > 0 ? <div className="my-3.5 border-t border-line" /> : null}
+
+						{selectedAnt
+							? (
+								<>
+									<div className="mb-3 flex items-center justify-between gap-2 border-b border-white/[0.06] pb-2.5">
+										<span className="font-mono text-[9px] tracking-[0.12em] text-faint uppercase">Editing</span>
+										<Badge>Ant {selectedIndex + 1}</Badge>
+									</div>
+
+									<div className="flex flex-col gap-3">
+										<div className="flex flex-col gap-1.5">
+											<span className={LABEL_CLASS}>
+												Position
+												<span className={UNIT_CLASS}>x, y</span>
+											</span>
+											<div className="grid grid-cols-2 gap-2">
+												<NumberInput
+													value={selectedAnt?.x ?? 0}
+													onChange={(x) => onUpdateAnt({ x })}
+													min={0}
+													max={world.width - 1}
+													prefix="X"
+													disabled={!selectedAnt}
+													commitOnBlur
+													ariaLabel="Ant X position"
+												/>
+												<NumberInput
+													value={selectedAnt?.y ?? 0}
+													onChange={(y) => onUpdateAnt({ y })}
+													min={0}
+													max={world.height - 1}
+													prefix="Y"
+													disabled={!selectedAnt}
+													commitOnBlur
+													ariaLabel="Ant Y position"
+												/>
+											</div>
+										</div>
+
+										<div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3">
+											<div className="flex flex-col gap-1.5">
+												<span className={LABEL_CLASS}>
+													Facing
+													<span className={UNIT_CLASS}>8-way</span>
+												</span>
+												<div className="grid grid-cols-3 grid-rows-3 gap-[3px]" role="group" aria-label="Initial ant direction">
+													{DIRECTIONS.map((direction) => {
+														const Active = selectedAnt?.dx === direction.dx && selectedAnt?.dy === direction.dy
+														const Icon = direction.icon
+
+														if (!Icon) {
+															return (
+																<span
+																	key={direction.label}
+																	aria-hidden
+																	className={cn(
+																		"grid size-8 place-items-center rounded-[3px] border border-dashed border-line",
+																		direction.position,
+																	)}
+																>
+																	<span className="size-1.5 rounded-full bg-faint" />
+																</span>
+															)
+														}
+
+														return (
+															<button
+																key={direction.label}
+																type="button"
+																disabled={!selectedAnt}
+																aria-label={direction.label}
+																aria-pressed={Active}
+																onClick={() => onUpdateAnt({ dx: direction.dx, dy: direction.dy })}
+																className={cn(
+																	"grid size-8 place-items-center rounded-[3px] border border-line bg-black/20 text-faint transition-colors",
+																	"hover:border-line-strong hover:bg-white/[0.06] hover:text-fg",
+																	"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+																	"aria-pressed:border-accent/50 aria-pressed:bg-accent-soft aria-pressed:text-accent-bright",
+																	"disabled:pointer-events-none disabled:opacity-35",
+																	direction.position,
+																)}
+															>
+																<Icon className="size-3.5" aria-hidden />
+															</button>
+														)
+													})}
+												</div>
+											</div>
+
+											<div className="flex min-w-0 flex-col gap-2.5">
+												<div className="flex flex-col gap-1.5">
+													<span className={LABEL_CLASS}>
+														Step size
+														<span className={UNIT_CLASS}>cells</span>
+													</span>
+													<NumberInput
+														value={selectedAnt?.stepSize ?? 1}
+														onChange={(stepSize) => onUpdateAnt({ stepSize })}
+														min={0}
+														max={100000}
+														disabled={!selectedAnt}
+														commitOnBlur
+														ariaLabel="Ant step size"
+													/>
+												</div>
+												<div className="flex flex-col gap-0.5 rounded-[3px] border border-dashed border-line bg-black/15 px-2 py-1.5">
+													<span className="font-mono text-[8px] tracking-[0.1em] text-faint uppercase">Vector</span>
+													<span className="truncate font-mono text-[9.5px] text-muted">
+														{selectedAnt
+															? `${selectedAnt.dx}, ${selectedAnt.dy} · ${directionLabel(selectedAnt.dx, selectedAnt.dy)}`
+															: "No ant selected"}
+													</span>
+												</div>
+											</div>
+										</div>
+
+										<div className="flex flex-col gap-1.5">
+											<label htmlFor="ant-rules" className={LABEL_CLASS}>
+												State machine
+												<span className={UNIT_CLASS}>R L U C</span>
+											</label>
+											<div className="grid grid-cols-[minmax(0,1fr)_34px_34px] gap-1.5">
+												<div
+													className={cn(
+														"flex h-[34px] items-center rounded-control border border-line bg-black/25 px-2.5 transition-[border-color,box-shadow]",
+														"focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/15",
+														selectedAnt && !rulesValid && "border-danger/65 ring-[3px] ring-danger/10",
+													)}
+												>
+													<input
+														id="ant-rules"
+														type="text"
+														value={rulesDraft}
+														disabled={!selectedAnt}
+														spellCheck={false}
+														autoComplete="off"
+														autoCapitalize="characters"
+														aria-invalid={Boolean(selectedAnt) && !rulesValid}
+														aria-describedby="rules-hint"
+														className="w-full min-w-0 bg-transparent font-mono text-xs tracking-[0.04em] text-accent-bright outline-none disabled:cursor-not-allowed"
+														onChange={(event) => setRulesDraft(event.target.value)}
+														onBlur={applyRules}
+														onKeyDown={(event) => {
+															if (event.key === "Enter") {
+																event.currentTarget.blur()
+															}
+														}}
+													/>
+												</div>
+												<Button
+													size="icon"
+													className="h-[34px] w-[34px]"
+													disabled={!selectedAnt}
+													aria-label="Mutate one rule"
+													title="Mutate one rule"
+													onClick={() => {
+														const next = [...(selectedAnt?.rules ?? [])]
+														if (next.length === 0) return
+														next[Math.floor(Math.random() * next.length)] = DIRECTION_VALUES[Math.floor(Math.random() * DIRECTION_VALUES.length)]!
+														onReplaceRules(next)
+													}}
+												>
+													<Dices className="size-3.5" aria-hidden />
+												</Button>
+												<Button
+													size="icon"
+													className="h-[34px] w-[34px]"
+													disabled={!selectedAnt}
+													aria-label="Randomize the rule set"
+													title="Randomize the rule set"
+													onClick={() => {
+														const length = 4 + Math.floor(Math.random() * 10)
+														const next = Array.from({ length }, () => DIRECTION_VALUES[Math.floor(Math.random() * DIRECTION_VALUES.length)]!)
+														onReplaceRules(next)
+													}}
+												>
+													<Shuffle className="size-3.5" aria-hidden />
+												</Button>
+											</div>
+											<p id="rules-hint" className={cn("text-[9.5px] leading-relaxed text-faint", selectedAnt && !rulesValid && "text-danger-text")}>
+												{rulesHint}
+											</p>
+											<div className="flex flex-wrap gap-1" aria-label="Rule presets">
+												{RULE_PRESETS.map((preset) => {
+													const Active = selectedAnt ? stringifyStateMachine(selectedAnt.rules) === preset.label : false
+													return (
+														<button
+															key={preset.label}
+															type="button"
+															disabled={!selectedAnt}
+															className={cn(CHIP_CLASS, Active && "border-accent/40 bg-accent-soft text-accent-bright")}
+															onClick={() => {
+																setRulesDraft(preset.label)
+																onReplaceRules(preset.rules)
+															}}
+														>
+															{preset.label}
+														</button>
+													)
+												})}
+											</div>
+										</div>
+
+										<div className="flex flex-col gap-1.5">
+											<SwitchRow
+												title="Wrap edges"
+												description="Teleport at borders"
+												checked={selectedAnt?.wrap ?? false}
+												disabled={!selectedAnt}
+												onCheckedChange={(wrap) => onUpdateAnt({ wrap })}
+											/>
+											<SwitchRow
+												title="Enabled"
+												description="Include in run"
+												checked={selectedAnt?.enabled ?? false}
+												disabled={!selectedAnt}
+												onCheckedChange={(enabled) => onUpdateAnt({ enabled })}
+											/>
+										</div>
+									</div>
+								</>
+							)
+							: world.ants.length > 0
+							? (
+								<p className="rounded-control border border-dashed border-line px-3 py-2 text-[10px] leading-relaxed text-faint">
+									Select an ant above to edit its position, rules and switches.
+								</p>
+							)
+							: null}
 					</Tabs.Panel>
 				</div>
 			</Tabs.Root>

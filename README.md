@@ -69,7 +69,7 @@ The interface is a small lab bench:
   switches and the state machine. `R`/`L` turn 90°, `R45`/`L45` and `R135`/`L135`
   turn diagonally, `U` reverses and `C` continues straight.
 - **Copy link** stores the full world in the URL so a run can be shared.
-- **Save PNG** downloads a snapshot of the current frame.
+- **Save PNG** downloads the raw grid texture at one pixel per cell.
 
 Keyboard shortcuts: `Space` start/pause, `S` step, `R` reset, `C` reset the view and
 `?` for the about dialog.

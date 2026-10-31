@@ -1,7 +1,7 @@
 "use client"
 
-import type { RefObject } from "react"
 import { Download, Pause, Play, RotateCcw, Scan, StepForward } from "lucide-react"
+import type { RefObject } from "react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -25,7 +25,7 @@ export function Stage({
 	onStep,
 	onReset,
 	onResetCamera,
-	onSaveImage
+	onSaveImage,
 }: StageProps) {
 	return (
 		<section
@@ -51,7 +51,7 @@ export function Stage({
 						"inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-[10.5px] whitespace-nowrap backdrop-blur-md transition-colors",
 						running
 							? "border-accent/35 bg-black/55 text-fg-1"
-							: "border-white/10 bg-black/55 text-muted"
+							: "border-white/10 bg-black/55 text-muted",
 					)}
 					role="status"
 				>
@@ -61,11 +61,17 @@ export function Stage({
 			</div>
 
 			<div className="pointer-events-none absolute top-3 right-3 z-10 hidden items-center gap-2 rounded-full border border-white/10 bg-black/45 px-2.5 py-1 text-[9.5px] whitespace-nowrap text-muted backdrop-blur-md sm:flex">
-				<span><kbd>Drag</kbd> pan</span>
+				<span>
+					<kbd>Drag</kbd> pan
+				</span>
 				<span className="text-white/20">·</span>
-				<span><kbd>Scroll</kbd> zoom</span>
+				<span>
+					<kbd>Scroll</kbd> zoom
+				</span>
 				<span className="text-white/20">·</span>
-				<span><kbd>Space</kbd> run</span>
+				<span>
+					<kbd>Space</kbd> run
+				</span>
 			</div>
 
 			<div className="absolute inset-x-0 bottom-3 z-10 flex justify-center px-3">
@@ -90,7 +96,8 @@ export function Stage({
 					<Button
 						variant="ghost"
 						className="text-muted hover:border-white/15 hover:bg-white/[0.08] hover:text-fg"
-						aria-label="Save a PNG snapshot"
+						aria-label="Save the texture as a PNG"
+						title="Save the texture as a PNG"
 						onClick={onSaveImage}
 					>
 						<Download className="size-3.5" aria-hidden />
@@ -108,14 +115,16 @@ export function Stage({
 				</div>
 			</div>
 
-			{error ? (
-				<div className="absolute inset-4 z-20 grid place-items-center">
-					<div className="max-w-sm rounded-control border border-danger/45 bg-[#261717]/95 px-4 py-3 text-center shadow-xl">
-						<p className="text-xs font-medium text-danger-text">WebGL could not start</p>
-						<p className="mt-1 font-mono text-[10px] leading-relaxed text-muted">{error}</p>
+			{error
+				? (
+					<div className="absolute inset-4 z-20 grid place-items-center">
+						<div className="max-w-sm rounded-control border border-danger/45 bg-[#261717]/95 px-4 py-3 text-center shadow-xl">
+							<p className="text-xs font-medium text-danger-text">WebGL could not start</p>
+							<p className="mt-1 font-mono text-[10px] leading-relaxed text-muted">{error}</p>
+						</div>
 					</div>
-				</div>
-			) : null}
+				)
+				: null}
 		</section>
 	)
 }

@@ -9,6 +9,7 @@ import { type Camera, createRenderer, type Renderer } from "@/lib/renderer"
 import { DEFAULT_WORLD, MAX_GRID, readWorldFromLocation, type WorldConfig, writeWorldToLocation } from "@/lib/share"
 import { FrameTimer, MAX_IPF, Simulation } from "@/lib/simulation"
 import { EMPTY_STATS, type SimulationStats } from "@/lib/stats"
+import { textureToPngBlob } from "@/lib/texture-export"
 import { basePath, clamp, cn, measureData, round } from "@/lib/utils"
 
 const SEED_ITERATIONS = 15000
@@ -78,6 +79,7 @@ export function Simulator() {
 	const [selectedId, setSelectedId] = useState<string | null>(DEFAULT_WORLD.ants[0]?.id ?? null)
 	const [running, setRunning] = useState(false)
 	const [ipf, setIpf] = useState(10)
+	const [antialias, setAntialias] = useState(true)
 	const [stats, setStats] = useState<SimulationStats>(EMPTY_STATS)
 	const [error, setError] = useState<string | null>(null)
 	const [toast, setToast] = useState<string | null>(null)
@@ -92,6 +94,7 @@ export function Simulator() {
 	}
 
 	const cameraRef = useRef<Camera>({ x: 0.5, y: 0.5, zoom: 1 })
+	const antialiasRef = useRef(true)
 	const runningRef = useRef(false)
 	const ipfRef = useRef(ipf)
 	const fpsRef = useRef(0)
@@ -111,6 +114,10 @@ export function Simulator() {
 	useEffect(() => {
 		ipfRef.current = ipf
 	}, [ipf])
+
+	useEffect(() => {
+		antialiasRef.current = antialias
+	}, [antialias])
 
 	const notify = useCallback((message: string) => {
 		setToast(message)
@@ -213,6 +220,7 @@ export function Simulator() {
 
 		let cancelled = false
 		const prefix = basePath()
+		setError(null)
 
 		Promise.all([
 			fetch(`${prefix}/shaders/vertex.vert`).then(response => {
@@ -269,7 +277,7 @@ export function Simulator() {
 		}
 	}, [])
 
-	// Keep the drawing buffer square and matched to its CSS box.
+	// Keep the drawing buffer matched to its CSS box.
 	useEffect(() => {
 		const canvas = canvasRef.current
 		if (!canvas) {
@@ -339,7 +347,7 @@ export function Simulator() {
 				}
 
 				if (renderer && sim.width > 0 && sim.height > 0) {
-					renderer.draw(cameraRef.current, sim.width, sim.height, sim.grid, dirtyRef.current || runningRef.current)
+					renderer.draw(cameraRef.current, sim.width, sim.height, sim.grid, dirtyRef.current || runningRef.current, antialiasRef.current)
 					dirtyRef.current = false
 				}
 			}
@@ -425,34 +433,25 @@ export function Simulator() {
 	}, [refreshStats])
 
 	const saveImage = useCallback(() => {
-		const canvas = canvasRef.current
 		const sim = simRef.current
-		const renderer = rendererRef.current
-
-		if (!canvas || !sim || !renderer) {
+		if (!sim || sim.width <= 0 || sim.height <= 0) {
 			return
 		}
 
-		if (sim.width <= 0 || sim.height <= 0) {
-			return
-		}
-
-		renderer.draw(cameraRef.current, sim.width, sim.height, sim.grid, true)
-
-		canvas.toBlob(blob => {
+		void textureToPngBlob(sim.grid, sim.width, sim.height).then((blob) => {
 			if (!blob) {
-				notify("Could not create the snapshot")
+				notify("Could not create the texture PNG")
 				return
 			}
 
 			const link = document.createElement("a")
-			link.download = `langtons-ant_${sim.width}x${sim.height}_${sim.totalIterations}.png`
+			link.download = `langtons-ant_texture_${sim.width}x${sim.height}_${sim.totalIterations}.png`
 			link.href = URL.createObjectURL(blob)
 			link.click()
 
 			window.setTimeout(() => URL.revokeObjectURL(link.href), 1000)
-			notify("Snapshot downloaded")
-		}, "image/png")
+			notify("Texture saved as PNG")
+		})
 	}, [notify])
 
 	const copyLink = useCallback(async () => {
@@ -733,6 +732,7 @@ export function Simulator() {
 					running={running}
 					ipf={ipf}
 					stats={stats}
+					antialias={antialias}
 					onSelectAnt={setSelectedId}
 					onAddAnt={addAnt}
 					onCloneAnt={cloneAnt}
@@ -741,6 +741,7 @@ export function Simulator() {
 					onReplaceRules={replaceRules}
 					onResize={resize}
 					onIpfChange={changeIpf}
+					onAntialiasChange={setAntialias}
 					onCopyLink={copyLink}
 				/>
 			</main>

@@ -8,7 +8,14 @@ export interface Camera {
 
 export interface Renderer {
 	resize: (width: number, height: number) => void
-	draw: (camera: Camera, gridWidth: number, gridHeight: number, grid: Uint8Array, upload: boolean) => void
+	draw: (
+		camera: Camera,
+		gridWidth: number,
+		gridHeight: number,
+		grid: Uint8Array,
+		upload: boolean,
+		antialias: boolean,
+	) => void
 	dispose: () => void
 }
 
@@ -55,11 +62,15 @@ function createProgram(gl: WebGL2RenderingContext, vertexSource: string, fragmen
 	return program
 }
 
-export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, fragmentSource: string): Renderer {
+export function createRenderer(
+	canvas: HTMLCanvasElement,
+	vertexSource: string,
+	fragmentSource: string,
+): Renderer {
 	const gl = canvas.getContext("webgl2", {
-		antialias: true,
+		antialias: false,
 		premultipliedAlpha: false,
-		preserveDrawingBuffer: true
+		preserveDrawingBuffer: true,
 	})
 
 	if (!gl) {
@@ -71,7 +82,10 @@ export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, 
 	const centerUniform = gl.getUniformLocation(program, "u_Center")
 	const zoomUniform = gl.getUniformLocation(program, "u_Zoom")
 	const scaleUniform = gl.getUniformLocation(program, "u_Scale")
+	const viewportUniform = gl.getUniformLocation(program, "u_ViewportSize")
+	const antialiasUniform = gl.getUniformLocation(program, "u_Antialias")
 
+	// dprint-ignore
 	const vertices = new Float32Array([
 		-1, -1,
 		-1, 1,
@@ -108,8 +122,10 @@ export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, 
 			gl.viewport(0, 0, canvasWidth, canvasHeight)
 		},
 
-		draw(camera, gridWidth, gridHeight, grid, upload) {
-			if (disposed) { return }
+		draw(camera, gridWidth, gridHeight, grid, upload, antialias) {
+			if (disposed) {
+				return
+			}
 
 			const canvasAspect = canvasWidth / canvasHeight
 			const gridAspect = gridWidth / gridHeight
@@ -131,6 +147,8 @@ export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, 
 			gl.uniform2f(centerUniform, camera.x, camera.y)
 			gl.uniform1f(zoomUniform, camera.zoom)
 			gl.uniform2f(scaleUniform, scaleX, scaleY)
+			gl.uniform2f(viewportUniform, canvasWidth, canvasHeight)
+			gl.uniform1f(antialiasUniform, antialias ? 1 : 0)
 
 			gl.activeTexture(gl.TEXTURE0)
 			gl.bindTexture(gl.TEXTURE_2D, texture)
@@ -145,7 +163,7 @@ export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, 
 					0,
 					gl.RED_INTEGER,
 					gl.UNSIGNED_BYTE,
-					grid
+					grid,
 				)
 			}
 
@@ -154,13 +172,15 @@ export function createRenderer(canvas: HTMLCanvasElement, vertexSource: string, 
 		},
 
 		dispose() {
-			if (disposed) { return }
+			if (disposed) {
+				return
+			}
 			disposed = true
 
 			gl.deleteProgram(program)
 			gl.deleteBuffer(vertexBuffer)
 			gl.deleteVertexArray(vertexArray)
 			gl.deleteTexture(texture)
-		}
+		},
 	}
 }
