@@ -1,7 +1,5 @@
 export interface Camera {
-	/** Horizontal center of the view in grid space (0..1). */
 	x: number
-	/** Vertical center of the view in grid space (0..1). */
 	y: number
 	zoom: number
 }
@@ -15,6 +13,7 @@ export interface Renderer {
 		grid: Uint8Array,
 		upload: boolean,
 		antialias: boolean,
+		pixelGrid: boolean,
 	) => void
 	dispose: () => void
 }
@@ -84,6 +83,7 @@ export function createRenderer(
 	const scaleUniform = gl.getUniformLocation(program, "u_Scale")
 	const viewportUniform = gl.getUniformLocation(program, "u_ViewportSize")
 	const antialiasUniform = gl.getUniformLocation(program, "u_Antialias")
+	const pixelGridUniform = gl.getUniformLocation(program, "u_PixelGrid")
 
 	// dprint-ignore
 	const vertices = new Float32Array([
@@ -122,7 +122,7 @@ export function createRenderer(
 			gl.viewport(0, 0, canvasWidth, canvasHeight)
 		},
 
-		draw(camera, gridWidth, gridHeight, grid, upload, antialias) {
+		draw(camera, gridWidth, gridHeight, grid, upload, antialias, pixelGrid) {
 			if (disposed) {
 				return
 			}
@@ -149,6 +149,7 @@ export function createRenderer(
 			gl.uniform2f(scaleUniform, scaleX, scaleY)
 			gl.uniform2f(viewportUniform, canvasWidth, canvasHeight)
 			gl.uniform1f(antialiasUniform, antialias ? 1 : 0)
+			gl.uniform1f(pixelGridUniform, pixelGrid ? 1 : 0)
 
 			gl.activeTexture(gl.TEXTURE0)
 			gl.bindTexture(gl.TEXTURE_2D, texture)

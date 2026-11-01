@@ -60,17 +60,21 @@ function parseAnt(value: unknown): AntConfig | null {
 	const dx = toInteger(direction.X ?? direction.dx, 0)
 	const dy = toInteger(direction.Y ?? direction.dy, -1)
 
-	if (!Number.isInteger(dx) || !Number.isInteger(dy) || Math.abs(dx) > 1 || Math.abs(dy) > 1 || (dx === 0 && dy === 0)) {
+	if (!Number.isInteger(dx) || !Number.isInteger(dy)) {
+		return null
+	}
+
+	if (Math.abs(dx) > 1 || Math.abs(dy) > 1 || (dx === 0 && dy === 0)) {
 		return null
 	}
 
 	return {
-		id: createAntId(),
-		x: clamp(toInteger(position.X ?? position.x, 0), 0, MAX_GRID - 1),
-		y: clamp(toInteger(position.Y ?? position.y, 0), 0, MAX_GRID - 1),
 		dx,
 		dy,
 		rules,
+		id: createAntId(),
+		x: clamp(toInteger(position.X ?? position.x, 0), 0, MAX_GRID - 1),
+		y: clamp(toInteger(position.Y ?? position.y, 0), 0, MAX_GRID - 1),
 		wrap: Boolean(record.Wrap ?? record.wrap),
 		stepSize: clamp(toInteger(record.StepSize ?? record.stepSize, 1), 0, 100000),
 		enabled: record.enabled === undefined ? true : Boolean(record.enabled),
@@ -111,7 +115,7 @@ export function serializeWorld(world: WorldConfig): string {
 		version: 2,
 		width: world.width,
 		height: world.height,
-		ants: world.ants.map((ant) => ({
+		ants: world.ants.map(ant => ({
 			x: ant.x,
 			y: ant.y,
 			dx: ant.dx,
@@ -127,7 +131,7 @@ export function serializeWorld(world: WorldConfig): string {
 	let binary = ""
 
 	for (const byte of compressed) {
-		binary += String.fromCharCode(byte)
+		binary += String.fromCharCode(byte) // NOSONAR typescript:S7758 (fromCharCode uses the 0-255 range)
 	}
 
 	return encodeURIComponent(btoa(binary))
@@ -136,7 +140,7 @@ export function serializeWorld(world: WorldConfig): string {
 export function deserializeWorld(value: string): WorldConfig | null {
 	try {
 		const binary = atob(decodeURIComponent(value))
-		const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0))
+		const bytes = Uint8Array.from(binary, character => character.charCodeAt(0)) // NOSONAR typescript:S7758 (charCodeAt operates in the 0-255 range)
 		const parsed: unknown = JSON.parse(strFromU8(decompressSync(bytes)))
 		return parseWorld(parsed)
 	}

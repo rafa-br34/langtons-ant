@@ -1,6 +1,6 @@
 import type { AntConfig, DirectionValue } from "./ant"
 
-export const MAX_IPF = 1_000_000
+export const MAX_IPF = 10_000_000
 
 const DIRECTIONS_X = [0, 1, 1, 1, 0, -1, -1, -1] as const
 const DIRECTIONS_Y = [-1, -1, 0, 1, 1, 1, 0, -1] as const
@@ -35,19 +35,19 @@ export class LiveAnt {
 		this.dy = DIRECTIONS_Y[index]!
 	}
 
-	wrapPosition(width: number, height: number) {
-		if (this.x < 0) this.x = width - 1
-		if (this.y < 0) this.y = height - 1
-		if (this.x >= width) this.x = 0
-		if (this.y >= height) this.y = 0
+	wrapPosition(size_x: number, size_y: number) {
+		if (this.x < 0) this.x = size_x - 1 // NOSONAR typescript:S121
+		if (this.y < 0) this.y = size_y - 1 // NOSONAR typescript:S121
+		if (this.x >= size_x) this.x = 0 // NOSONAR typescript:S121
+		if (this.y >= size_y) this.y = 0 // NOSONAR typescript:S121
 	}
 
-	update(grid: Uint8Array, width: number, height: number) {
-		if (this.x < 0 || this.y < 0 || this.x >= width || this.y >= height) {
+	update(grid: Uint8Array, size_x: number, size_y: number) {
+		if (this.x < 0 || this.y < 0 || this.x >= size_x || this.y >= size_y) {
 			return false
 		}
 
-		const cellIndex = width * this.y + this.x
+		const cellIndex = size_x * this.y + this.x
 		const cellValue = grid[cellIndex]!
 
 		this.rotate(this.rules[cellValue % this.rules.length]!)
@@ -57,14 +57,14 @@ export class LiveAnt {
 		grid[cellIndex] = (cellValue + 1) % this.rules.length
 
 		if (this.wrap) {
-			this.wrapPosition(width, height)
+			this.wrapPosition(size_x, size_y)
 		}
 
 		return true
 	}
 
-	updatePosition(grid: Uint8Array, width: number, height: number) {
-		const cellValue = grid[width * this.y + this.x]!
+	updatePosition(grid: Uint8Array, size_x: number, size_y: number) {
+		const cellValue = grid[size_x * this.y + this.x]!
 
 		this.rotate(this.rules[cellValue % this.rules.length]!)
 
@@ -75,16 +75,16 @@ export class LiveAnt {
 		this.y += this.dy * this.stepSize
 
 		if (this.wrap) {
-			this.wrapPosition(width, height)
+			this.wrapPosition(size_x, size_y)
 		}
 	}
 
-	updateCell(grid: Uint8Array, width: number, height: number) {
-		if (this.x < 0 || this.y < 0 || this.x >= width || this.y >= height) {
+	updateCell(grid: Uint8Array, size_x: number, size_y: number) {
+		if (this.x < 0 || this.y < 0 || this.x >= size_x || this.y >= size_y) {
 			return false
 		}
 
-		const cellIndex = width * this.lastY + this.lastX
+		const cellIndex = size_x * this.lastY + this.lastX
 		grid[cellIndex] = (grid[cellIndex]! + 1) % this.rules.length
 
 		return true
@@ -92,8 +92,8 @@ export class LiveAnt {
 }
 
 export class Simulation {
-	width = 0
-	height = 0
+	size_x = 0
+	size_y = 0
 	grid = new Uint8Array(0)
 	totalIterations = 0
 
@@ -104,33 +104,35 @@ export class Simulation {
 		return this.grid.byteLength
 	}
 
-	resize(width: number, height: number) {
-		this.width = width
-		this.height = height
-		this.grid = new Uint8Array(width * height)
+	resize(size_x: number, size_y: number) {
+		this.size_x = size_x
+		this.size_y = size_y
+		this.grid = new Uint8Array(size_x * size_y)
 		this.totalIterations = 0
 		this.ants = []
 	}
 
 	setAnts(ants: readonly AntConfig[]) {
-		this.templates = ants.filter((ant) => ant.enabled)
+		this.templates = ants.filter(ant => ant.enabled)
 		this.reset()
 	}
 
 	reset() {
 		this.totalIterations = 0
 		this.grid.fill(0)
-		this.ants = this.templates.map((config) => new LiveAnt(config))
+		this.ants = this.templates.map(config => new LiveAnt(config))
 	}
 
 	update(iterations = 1) {
-		if (this.width <= 0 || this.height <= 0 || this.grid.length === 0) {
+		const {
+			size_x,
+			size_y,
+			grid,
+		} = this
+
+		if (size_x <= 0 || size_y <= 0 || grid.length === 0) {
 			return 0
 		}
-
-		const width = this.width
-		const height = this.height
-		const grid = this.grid
 
 		let iterated = 0
 
@@ -138,7 +140,7 @@ export class Simulation {
 			const ant = this.ants[0]!
 
 			for (; iterated < iterations; iterated += 1) {
-				if (!ant.update(grid, width, height)) {
+				if (!ant.update(grid, size_x, size_y)) {
 					this.ants = []
 					break
 				}
@@ -147,10 +149,10 @@ export class Simulation {
 		else if (this.ants.length > 1) {
 			for (; iterated < iterations; iterated += 1) {
 				for (const ant of this.ants) {
-					ant.updatePosition(grid, width, height)
+					ant.updatePosition(grid, size_x, size_y)
 				}
 
-				this.ants = this.ants.filter((ant) => ant.updateCell(grid, width, height))
+				this.ants = this.ants.filter(ant => ant.updateCell(grid, size_x, size_y))
 
 				if (this.ants.length === 0) {
 					break

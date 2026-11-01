@@ -1,14 +1,9 @@
-// Mirrors GetColor() in public/shaders/fragment.frag so the exported PNG uses
-// exactly the same palette as the WebGL texture.
+import { xorshift32 } from "./utils"
+
 const PALETTE = new Uint8Array(256 * 3)
 
 for (let state = 0; state < 256; state += 1) {
-	let value = state >>> 0
-
-	value = (value ^ (value << 13)) >>> 0
-	value = (value ^ (value >>> 17)) >>> 0
-	value = (value ^ (value << 5)) >>> 0
-	value = Math.imul(value, 0x9E3779B9) >>> 0
+	let value = xorshift32(state)
 
 	PALETTE[state * 3] = (value >>> 16) & 0xFF
 	PALETTE[state * 3 + 1] = (value >>> 8) & 0xFF
@@ -45,7 +40,7 @@ export async function textureToPngBlob(grid: Uint8Array, width: number, height: 
 
 		context.putImageData(image, 0, 0)
 
-		return await new Promise<Blob | null>((resolve) => {
+		return await new Promise<Blob | null>(resolve => {
 			canvas.toBlob(resolve, "image/png")
 		})
 	}

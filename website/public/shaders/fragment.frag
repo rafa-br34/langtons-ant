@@ -8,6 +8,7 @@ uniform float u_Zoom;
 uniform vec2 u_Scale;
 uniform vec2 u_ViewportSize;
 uniform float u_Antialias;
+uniform float u_PixelGrid;
 
 in vec2 v_Screen;
 
@@ -41,6 +42,30 @@ vec3 SampleGrid(vec2 grid) {
 	}
 
 	return GetColor(texture(u_Grid, grid).x);
+}
+
+vec3 ApplyPixelGrid(vec3 color, vec2 grid) {
+	if (u_PixelGrid < 0.5) {
+		return color;
+	}
+
+	vec2 gridSize = vec2(textureSize(u_Grid, 0));
+	vec2 footprint = gridSize / (u_Zoom * u_Scale * u_ViewportSize);
+	float cellPixels = 1.0 / max(max(footprint.x, footprint.y), 0.0001);
+	float fade = smoothstep(3.5, 6.0, cellPixels);
+
+	if (fade <= 0.0) {
+		return color;
+	}
+
+	vec2 cell = grid * gridSize;
+	vec2 distanceInPixels = min(fract(cell), 1.0 - fract(cell)) / max(footprint, vec2(0.0001));
+
+	if (min(distanceInPixels.x, distanceInPixels.y) < 0.5) {
+		return mix(color, vec3(1.0), 0.35 * fade);
+	}
+
+	return color;
 }
 
 void main() {
@@ -78,10 +103,10 @@ void main() {
 				}
 			}
 
-			o_FragColor = vec4(color / 16.0, 1.0);
+			o_FragColor = vec4(ApplyPixelGrid(color / 16.0, grid), 1.0);
 			return;
 		}
 	}
 
-	o_FragColor = vec4(SampleGrid(grid), 1.0);
+	o_FragColor = vec4(ApplyPixelGrid(SampleGrid(grid), grid), 1.0);
 }

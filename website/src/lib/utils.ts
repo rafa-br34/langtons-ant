@@ -5,6 +5,16 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs))
 }
 
+export function xorshift32(value: number) {
+	value = value >>> 0
+	value = (value ^ (value << 13)) >>> 0
+	value = (value ^ (value >>> 17)) >>> 0
+	value = (value ^ (value << 5)) >>> 0
+	value = Math.imul(value, 0x9E3779B9) >>> 0
+
+	return value
+}
+
 export function clamp(value: number, min: number, max: number) {
 	return Math.min(Math.max(value, min), max)
 }
@@ -34,7 +44,7 @@ export function basePath() {
 		return ""
 	}
 
-	return `/${value.replace(/^\/+|\/+$/g, "")}`
+	return `/${value.replace(/^\/+|\/+$/g, "")}` // NOSONAR typescript:S8786
 }
 
 export function withBasePath(path: string) {

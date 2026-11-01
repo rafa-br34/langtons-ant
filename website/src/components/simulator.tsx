@@ -76,6 +76,7 @@ export function Simulator() {
 	const [running, setRunning] = useState(false)
 	const [ipf, setIpf] = useState(10)
 	const [antialias, setAntialias] = useState(true)
+	const [pixelGrid, setPixelGrid] = useState(false)
 	const [stats, setStats] = useState<SimulationStats>(EMPTY_STATS)
 	const [error, setError] = useState<string | null>(null)
 	const [toast, setToast] = useState<string | null>(null)
@@ -91,6 +92,7 @@ export function Simulator() {
 
 	const cameraRef = useRef<Camera>({ x: 0.5, y: 0.5, zoom: 1 })
 	const antialiasRef = useRef(true)
+	const pixelGridRef = useRef(false)
 	const runningRef = useRef(false)
 	const ipfRef = useRef(ipf)
 	const fpsRef = useRef(0)
@@ -114,6 +116,10 @@ export function Simulator() {
 	useEffect(() => {
 		antialiasRef.current = antialias
 	}, [antialias])
+
+	useEffect(() => {
+		pixelGridRef.current = pixelGrid
+	}, [pixelGrid])
 
 	const notify = useCallback((message: string) => {
 		setToast(message)
@@ -148,8 +154,8 @@ export function Simulator() {
 			buffer: measureData(sim.bufferBytes),
 			bandwidth: isRunning ? `${measureData(sim.bufferBytes * fps)}/s` : "0B/s",
 			camera: {
-				x: round(cameraRef.current.x * sim.width, 1),
-				y: round(cameraRef.current.y * sim.height, 1),
+				x: round(cameraRef.current.x * sim.size_x, 1),
+				y: round(cameraRef.current.y * sim.size_y, 1),
 				zoom: round(cameraRef.current.zoom, 2),
 			},
 		})
@@ -187,7 +193,7 @@ export function Simulator() {
 
 		sim.resize(world.width, world.height)
 		sim.setAnts(world.ants)
-		clampCamera(cameraRef.current, canvasRef.current, sim.width, sim.height)
+		clampCamera(cameraRef.current, canvasRef.current, sim.size_x, sim.size_y)
 
 		if (!seededRef.current) {
 			seededRef.current = true
@@ -251,7 +257,7 @@ export function Simulator() {
 
 				const sim = simRef.current
 				if (sim) {
-					clampCamera(cameraRef.current, canvas, sim.width, sim.height)
+					clampCamera(cameraRef.current, canvas, sim.size_x, sim.size_y)
 					refreshStats()
 				}
 
@@ -295,7 +301,7 @@ export function Simulator() {
 
 			const sim = simRef.current
 			if (sim) {
-				clampCamera(cameraRef.current, canvas, sim.width, sim.height)
+				clampCamera(cameraRef.current, canvas, sim.size_x, sim.size_y)
 				refreshStats()
 			}
 
@@ -342,8 +348,8 @@ export function Simulator() {
 					}
 				}
 
-				if (renderer && sim.width > 0 && sim.height > 0) {
-					renderer.draw(cameraRef.current, sim.width, sim.height, sim.grid, dirtyRef.current || runningRef.current, antialiasRef.current)
+				if (renderer && sim.size_x > 0 && sim.size_y > 0) {
+					renderer.draw(cameraRef.current, sim.size_x, sim.size_y, sim.grid, dirtyRef.current || runningRef.current, antialiasRef.current, pixelGridRef.current)
 					dirtyRef.current = false
 				}
 			}
@@ -430,18 +436,18 @@ export function Simulator() {
 
 	const saveImage = useCallback(() => {
 		const sim = simRef.current
-		if (!sim || sim.width <= 0 || sim.height <= 0) {
+		if (!sim || sim.size_x <= 0 || sim.size_y <= 0) {
 			return
 		}
 
-		void textureToPngBlob(sim.grid, sim.width, sim.height).then((blob) => {
+		void textureToPngBlob(sim.grid, sim.size_x, sim.size_y).then((blob) => {
 			if (!blob) {
 				notify("Could not create the texture PNG")
 				return
 			}
 
 			const link = document.createElement("a")
-			link.download = `langtons-ant_texture_${sim.width}x${sim.height}_${sim.totalIterations}.png`
+			link.download = `langtons-ant_texture_${sim.size_x}x${sim.size_y}_${sim.totalIterations}.png`
 			link.href = URL.createObjectURL(blob)
 			link.click()
 
@@ -592,7 +598,7 @@ export function Simulator() {
 			}
 
 			const rect = canvasElement.getBoundingClientRect()
-			const scale = viewScale(rect.width, rect.height, sim.width, sim.height)
+			const scale = viewScale(rect.width, rect.height, sim.size_x, sim.size_y)
 			const camera = cameraRef.current
 
 			const dx = event.clientX - lastX
@@ -603,7 +609,7 @@ export function Simulator() {
 			camera.x -= (dx / Math.max(1, rect.width)) / (camera.zoom * scale.x)
 			camera.y -= (dy / Math.max(1, rect.height)) / (camera.zoom * scale.y)
 
-			clampCamera(camera, canvasElement, sim.width, sim.height)
+			clampCamera(camera, canvasElement, sim.size_x, sim.size_y)
 			refreshStats()
 		}
 
@@ -635,7 +641,7 @@ export function Simulator() {
 			}
 
 			const rect = canvasElement.getBoundingClientRect()
-			const scale = viewScale(rect.width, rect.height, sim.width, sim.height)
+			const scale = viewScale(rect.width, rect.height, sim.size_x, sim.size_y)
 			const camera = cameraRef.current
 			const oldZoom = camera.zoom
 			const newZoom = clamp(oldZoom * Math.exp(-event.deltaY * 0.0015), 0.5, 64)
@@ -647,7 +653,7 @@ export function Simulator() {
 			camera.y += (cursorY - 0.5) * (1 / oldZoom - 1 / newZoom) / scale.y
 			camera.zoom = newZoom
 
-			clampCamera(camera, canvasElement, sim.width, sim.height)
+			clampCamera(camera, canvasElement, sim.size_x, sim.size_y)
 			refreshStats()
 		}
 
@@ -730,6 +736,7 @@ export function Simulator() {
 					ipf={ipf}
 					stats={stats}
 					antialias={antialias}
+					pixelGrid={pixelGrid}
 					onSelectAnt={setSelectedId}
 					onAddAnt={addAnt}
 					onCloneAnt={cloneAnt}
@@ -739,6 +746,7 @@ export function Simulator() {
 					onResize={resize}
 					onIpfChange={changeIpf}
 					onAntialiasChange={setAntialias}
+					onPixelGridChange={setPixelGrid}
 				/>
 			</main>
 

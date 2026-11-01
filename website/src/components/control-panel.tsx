@@ -371,6 +371,7 @@ export function ControlPanel({
 	ipf,
 	stats,
 	antialias,
+	pixelGrid,
 	onSelectAnt,
 	onAddAnt,
 	onCloneAnt,
@@ -380,6 +381,7 @@ export function ControlPanel({
 	onResize,
 	onIpfChange,
 	onAntialiasChange,
+	onPixelGridChange,
 }: {
 	readonly world: WorldConfig
 	readonly selectedId: string | null
@@ -388,6 +390,7 @@ export function ControlPanel({
 	readonly ipf: number
 	readonly stats: SimulationStats
 	readonly antialias: boolean
+	readonly pixelGrid: boolean
 	readonly onSelectAnt: (id: string | null) => void
 	readonly onAddAnt: () => void
 	readonly onCloneAnt: () => void
@@ -397,6 +400,7 @@ export function ControlPanel({
 	readonly onResize: (width: number, height: number) => void
 	readonly onIpfChange: (value: number) => void
 	readonly onAntialiasChange: (value: boolean) => void
+	readonly onPixelGridChange: (value: boolean) => void
 }) {
 	const statValues: Record<(typeof STAT_ITEMS)[number]["key"], string> = {
 		iterations: stats.iterations.toLocaleString("en-US"),
@@ -527,13 +531,22 @@ export function ControlPanel({
 
 						<SectionHeading label="Graphics" className="my-4" />
 
-						<SwitchRow
-							title="Antialiasing"
-							description="4×4 shader supersampling"
-							checked={antialias}
-							disabled={false}
-							onCheckedChange={onAntialiasChange}
-						/>
+						<div className="flex flex-col gap-1.5">
+							<SwitchRow
+								title="Antialiasing"
+								description="4×4 shader supersampling"
+								checked={antialias}
+								disabled={false}
+								onCheckedChange={onAntialiasChange}
+							/>
+							<SwitchRow
+								title="Pixel grid"
+								description="Cell borders when zoomed in"
+								checked={pixelGrid}
+								disabled={false}
+								onCheckedChange={onPixelGridChange}
+							/>
+						</div>
 					</Tabs.Panel>
 
 					<Tabs.Panel value="ant" className="p-4">
