@@ -16,8 +16,8 @@ function AboutContent() {
 
 					<div className="flex items-center justify-between gap-4 border-b border-line bg-white/[0.014] px-[18px] py-4">
 						<div>
-							<span className="font-mono text-[9.5px] tracking-[0.14em] text-faint uppercase">About</span>
-							<Dialog.Title className="mt-0.5 text-[17px] font-semibold tracking-[-0.02em] text-fg">
+							<span className="font-mono text-2xs tracking-widest text-faint uppercase">About</span>
+							<Dialog.Title className="mt-0.5 text-lg font-semibold tracking-tight text-fg">
 								Langton&apos;s ant
 							</Dialog.Title>
 						</div>
@@ -29,7 +29,7 @@ function AboutContent() {
 						</Dialog.Close>
 					</div>
 
-					<div className="px-[18px] py-[18px] text-[12.5px] leading-relaxed">
+					<div className="px-[18px] py-[18px] text-xs leading-relaxed">
 						<p className="mb-2.5">
 							Langton&apos;s ant is a two-dimensional Turing machine. The ant walks a grid, turning according to the state machine written on its current cell. Turn
 							right on a blank cell, left on a filled one, and a few million steps later a chaotic cloud snaps into a repeating{" "}
@@ -48,7 +48,7 @@ function AboutContent() {
 							also contains C++ implementations that can write huge grids to PNG or TIFF.
 						</p>
 
-						<h3 className="mt-5 mb-2 text-[10px] font-semibold tracking-[0.12em] text-fg-1 uppercase">Controls</h3>
+						<h3 className="mt-5 mb-2 text-2xs font-semibold tracking-widest text-fg-1 uppercase">Controls</h3>
 						<dl className="grid grid-cols-1 gap-x-5 sm:grid-cols-2">
 							{[
 								["Space", "Start / pause"],
@@ -62,29 +62,29 @@ function AboutContent() {
 									<dt>
 										<kbd>{key}</kbd>
 									</dt>
-									<dd className="truncate font-mono text-[10px] text-fg-1">{action}</dd>
+									<dd className="truncate font-mono text-2xs text-fg-1">{action}</dd>
 								</div>
 							))}
 						</dl>
 
-						<h3 className="mt-5 mb-2 text-[10px] font-semibold tracking-[0.12em] text-fg-1 uppercase">State machines</h3>
+						<h3 className="mt-5 mb-2 text-2xs font-semibold tracking-widest text-fg-1 uppercase">State machines</h3>
 						<p>
 							Each character is one step of the machine:{" "}
-							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">
+							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">
 								R
-							</code>/<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">L</code> turn 90°,{" "}
-							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">
+							</code>/<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">L</code> turn 90°,{" "}
+							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">
 								R45
-							</code>/<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">L45</code> and{" "}
-							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">
+							</code>/<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">L45</code> and{" "}
+							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">
 								R135
-							</code>/<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">L135</code> turn diagonally,
+							</code>/<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">L135</code> turn diagonally,
 							{" "}
-							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">U</code> reverses, and{" "}
-							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-[11px] text-accent-bright">C</code>{" "}
+							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">U</code> reverses, and{" "}
+							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">C</code>{" "}
 							continues straight. A cell cycles through the machine&apos;s states as the ant visits it.
 						</p>
-						<p className="mt-4 text-[10px] text-faint">
+						<p className="mt-4 text-2xs text-faint">
 							Made by{" "}
 							<a
 								className="text-fg underline decoration-[#5a5a5a] underline-offset-2 hover:decoration-fg"
@@ -97,7 +97,7 @@ function AboutContent() {
 							. Third-party content belongs to its respective owners.
 						</p>
 
-						<div className="mt-4 flex items-center gap-4 border-t border-white/5 pt-3 text-[10.5px]">
+						<div className="mt-4 flex items-center gap-4 border-t border-white/5 pt-3 text-2xs">
 							<a
 								className="text-fg-1 underline decoration-[#5a5a5a] underline-offset-2 hover:decoration-fg"
 								href="https://github.com/rafa-br34/LangtonsAnt#readme"

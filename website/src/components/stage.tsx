@@ -86,7 +86,10 @@ export function Stage({
 				>
 					<StageButton
 						variant="primary"
-						className="min-w-[120px] sm:min-w-[140px]"
+						className={cn(
+							"min-w-[120px] sm:min-w-[140px]",
+							!running && "border-accent bg-accent text-neutral-900 hover:border-accent-bright hover:bg-accent-bright hover:text-neutral-900",
+						)}
 						icon={running ? Pause : Play}
 						title={running ? "Pause the simulation" : "Start the simulation"}
 						hideLabelOnMobile={false}
@@ -113,7 +116,9 @@ export function Stage({
 					>
 						Reset
 					</StageButton>
+
 					<Separator orientation="vertical" className="mx-0.5 hidden h-full w-px bg-white/10 sm:block" />
+
 					<StageButton icon={Download} title="Save the texture as a PNG" onClick={onSaveImage}>Save PNG</StageButton>
 					<StageButton icon={Link2} title="Copy link" onClick={onCopyLink}>Copy link</StageButton>
 					<StageButton icon={Scan} title="Reset the camera view" onClick={onResetCamera}>Reset view</StageButton>
@@ -125,7 +130,7 @@ export function Stage({
 					<div className="absolute inset-4 z-20 grid place-items-center">
 						<div className="max-w-sm rounded-control border border-danger/45 bg-[#261717]/95 px-4 py-3 text-center shadow-xl">
 							<p className="text-xs font-medium text-danger-text">WebGL could not start</p>
-							<p className="mt-1 font-mono text-[10px] leading-relaxed text-muted">{error}</p>
+							<p className="mt-1 font-mono text-2xs leading-relaxed text-muted">{error}</p>
 						</div>
 					</div>
 				)

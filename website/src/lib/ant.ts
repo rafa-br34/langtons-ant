@@ -14,7 +14,6 @@ export type DirectionValue = (typeof DIRECTION)[keyof typeof DIRECTION]
 export const DIRECTION_VALUES: readonly DirectionValue[] = [1, 2, 3, -1, -2, -3, 0, 4]
 
 const DIRECTION_STRINGS = ["L135", "L", "L45", "C", "R45", "R", "R135", "U"] as const
-
 const DIRECTION_SET = new Set<number>(DIRECTION_VALUES)
 
 export interface Vec2 {
@@ -72,7 +71,7 @@ export function parseStateMachine(input: string): ParsedStateMachine {
 			const sign = character === "R" ? 1 : -1
 			let angle = 90
 
-			const match = source.slice(index + 1).match(/^(45|90|135)/)
+			const match = /^(45|90|135)/.exec(source.slice(index + 1))
 			if (match) {
 				angle = Number(match[1])
 				index += match[1].length
@@ -102,7 +101,7 @@ export function parseStateMachine(input: string): ParsedStateMachine {
 }
 
 export function stringifyStateMachine(rules: readonly DirectionValue[], separator = "") {
-	return rules.map((value) => DIRECTION_STRINGS[(value + 3) % DIRECTION_STRINGS.length]).join(separator)
+	return rules.map(value => DIRECTION_STRINGS[(value + 3) % DIRECTION_STRINGS.length]).join(separator)
 }
 
 export function isDirectionValue(value: unknown): value is DirectionValue {

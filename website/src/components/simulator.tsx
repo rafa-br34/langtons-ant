@@ -746,7 +746,7 @@ export function Simulator() {
 				role="status"
 				aria-live="polite"
 				className={cn(
-					"fixed bottom-24 left-1/2 z-[100] max-w-[calc(100vw-32px)] -translate-x-1/2 rounded-panel border border-line-strong bg-[#1b1b1b] px-3 py-2 text-[11px] text-fg shadow-[0_16px_44px_rgb(0_0_0/0.5)] transition-opacity duration-150",
+					"fixed bottom-24 left-1/2 z-[100] max-w-[calc(100vw-32px)] -translate-x-1/2 rounded-panel border border-line-strong bg-[#1b1b1b] px-3 py-2 text-xs text-fg shadow-[0_16px_44px_rgb(0_0_0/0.5)] transition-opacity duration-150",
 					toast ? "opacity-100" : "pointer-events-none opacity-0",
 				)}
 			>

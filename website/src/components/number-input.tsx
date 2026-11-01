@@ -83,7 +83,7 @@ export function NumberInput({
 				className,
 			)}
 		>
-			{prefix ? <span className="shrink-0 font-mono text-[9.5px] text-faint">{prefix}</span> : null}
+			{prefix ? <span className="shrink-0 font-mono text-2xs text-faint">{prefix}</span> : null}
 			<input
 				id={id}
 				type="number"
