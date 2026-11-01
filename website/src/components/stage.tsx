@@ -80,7 +80,7 @@ export function Stage({
 
 			<div className="absolute inset-x-0 bottom-3 z-10 flex justify-center px-3">
 				<div
-					className="pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-1 rounded-panel border border-white/10 bg-black/65 p-1 shadow-[0_12px_40px_rgb(0_0_0/0.45)] backdrop-blur-md sm:gap-1.5 sm:p-1.5"
+					className="pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-1 rounded-panel border border-white/10 bg-black/65 p-1 shadow-toolbar backdrop-blur-md sm:gap-1.5 sm:p-1.5"
 					role="toolbar"
 					aria-label="Simulation controls"
 				>
@@ -128,7 +128,7 @@ export function Stage({
 			{error
 				? (
 					<div className="absolute inset-4 z-20 grid place-items-center">
-						<div className="max-w-sm rounded-control border border-danger/45 bg-[#261717]/95 px-4 py-3 text-center shadow-xl">
+						<div className="max-w-sm rounded-control border border-danger/45 bg-danger-soft px-4 py-3 text-center shadow-xl">
 							<p className="text-xs font-medium text-danger-text">WebGL could not start</p>
 							<p className="mt-1 font-mono text-2xs leading-relaxed text-muted">{error}</p>
 						</div>

@@ -5,7 +5,6 @@
 	--color-canvas: #222222;
 	--color-surface: #1A1A1A;
 	--color-surface-raised: #1C1C1C;
-	--color-void: #0D0D0D;
 	/* Text */
 	--color-fg: #FFFFFF;
 	--color-fg-1: #D0D0D0;
@@ -17,7 +16,6 @@
 	--color-accent: #20C0C0;
 	--color-accent-bright: #40E0E0;
 	--color-accent-soft: rgb(32 192 192 / 0.1);
-	--color-accent-line: rgb(32 192 192 / 0.45);
 	--color-danger: #E04040;
 	--color-danger-text: #FF9A9A;
 	--color-danger-soft: rgb(224 64 64 / 0.12);
@@ -45,22 +43,9 @@
 	/* Shape */
 	--radius-panel: 8px;
 	--radius-control: 4px;
-	--shadow-panel: 0 24px 70px rgb(0 0 0 / 0.38);
-	--animate-run-pulse: run-pulse 2s ease-out infinite;
-}
-
-@keyframes run-pulse {
-	0% {
-		box-shadow: 0 0 0 0 rgb(32 192 192 / 0.45);
-	}
-
-	70% {
-		box-shadow: 0 0 0 6px rgb(32 192 192 / 0);
-	}
-
-	100% {
-		box-shadow: 0 0 0 6px rgb(32 192 192 / 0);
-	}
+	--shadow-toolbar: 0 12px 40px rgb(0 0 0 / 0.45);
+	--shadow-toast: 0 16px 44px rgb(0 0 0 / 0.5);
+	--shadow-accent-glow: 0 0 8px rgb(32 192 192 / 0.6);
 }
 
 @layer base {
@@ -92,9 +77,9 @@
 
 	kbd {
 		align-items: center;
-		background: #191919;
+		background: var(--color-surface);
 		border: 1px solid var(--color-line);
-		border-bottom-color: #4D4D4D;
+		border-bottom-color: var(--color-line-strong);
 		border-radius: 3px;
 		color: var(--color-muted);
 		display: inline-flex;
@@ -106,7 +91,7 @@
 	}
 
 	* {
-		scrollbar-color: #454545 transparent;
+		scrollbar-color: var(--color-line-strong) transparent;
 		scrollbar-width: thin;
 	}
 
@@ -120,14 +105,14 @@
 	}
 
 	::-webkit-scrollbar-thumb {
-		background: #454545;
+		background: var(--color-line-strong);
 		background-clip: content-box;
 		border: 3px solid transparent;
 		border-radius: 999px;
 	}
 
 	::-webkit-scrollbar-thumb:hover {
-		background: #5A5A5A;
+		background: var(--color-faint);
 		background-clip: content-box;
 	}
 

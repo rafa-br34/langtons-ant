@@ -28,7 +28,7 @@ export function NumberInput({
 	commitOnBlur = false,
 	ariaLabel,
 	className,
-}: NumberInputProps) {
+}: Readonly<NumberInputProps>) {
 	const [draft, setDraft] = useState(String(value))
 	const focused = useRef(false)
 
@@ -76,7 +76,7 @@ export function NumberInput({
 		<div
 			className={cn(
 				"flex h-[34px] items-center gap-1.5 rounded-control border border-line bg-black/25 px-2.5 transition-[border-color,box-shadow,background-color]",
-				"hover:border-[#494949] focus-within:border-accent focus-within:bg-black/40 focus-within:ring-[3px] focus-within:ring-accent/15",
+				"hover:border-line-strong focus-within:border-accent focus-within:bg-black/40 focus-within:ring-[3px] focus-within:ring-accent/15",
 				disabled && "opacity-50",
 				className,
 			)}
@@ -91,7 +91,6 @@ export function NumberInput({
 				spellCheck={false}
 				autoComplete="off"
 				aria-label={ariaLabel}
-				aria-description="Math expressions are allowed, for example 50%+1024."
 				title="Math expressions are allowed, for example 50%+1024."
 				className="h-full w-full min-w-0 bg-transparent font-mono text-xs tabular-nums text-fg outline-none disabled:cursor-not-allowed disabled:text-faint"
 				onFocus={() => {
@@ -101,8 +100,8 @@ export function NumberInput({
 					focused.current = false
 					commit()
 				}}
-				onChange={(event) => handleChange(event.target.value)}
-				onKeyDown={(event) => {
+				onChange={event => handleChange(event.target.value)}
+				onKeyDown={event => {
 					if (event.key === "Enter") {
 						event.currentTarget.blur()
 					}

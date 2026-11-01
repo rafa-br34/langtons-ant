@@ -4,13 +4,13 @@ import { Switch } from "@base-ui/react/switch"
 import { Tabs } from "@base-ui/react/tabs"
 import { Toggle } from "@base-ui/react/toggle"
 import { ToggleGroup } from "@base-ui/react/toggle-group"
-import { ArrowDown, ArrowDownLeft, ArrowDownRight, ArrowLeft, ArrowRight, ArrowUp, ArrowUpLeft, ArrowUpRight, ChevronRight, Dices, PlayingCard, Plus } from "lucide-react"
+import { ArrowDown, ArrowDownLeft, ArrowDownRight, ArrowLeft, ArrowRight, ArrowUp, ArrowUpLeft, ArrowUpRight, ChevronRight, Dices, FlipHorizontal2, PlayingCard, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { AboutDialog } from "@/components/about-dialog"
 import { NumberInput } from "@/components/number-input"
 import { Button } from "@/components/ui/button"
-import { type AntConfig, DIRECTION_VALUES, directionLabel, type DirectionValue, parseStateMachine, stringifyStateMachine } from "@/lib/ant"
+import { type AntConfig, DIRECTION, DIRECTION_VALUES, directionLabel, type DirectionValue, parseStateMachine, stringifyStateMachine } from "@/lib/ant"
 import { MAX_GRID, type WorldConfig } from "@/lib/share"
 import { MAX_IPF } from "@/lib/simulation"
 import type { SimulationStats } from "@/lib/stats"
@@ -19,12 +19,6 @@ import Image from "next/image"
 import { SiGithub } from "react-icons/si"
 
 const SPEEDS = [1, 100, 10000, 100000] as const
-
-const RULE_PRESETS = [
-	{ label: "RL", rules: parseStateMachine("RL").rules },
-	{ label: "LRRRRRLLR", rules: parseStateMachine("LRRRRRLLR").rules },
-	{ label: "RLR", rules: parseStateMachine("RLR").rules },
-]
 
 const STAT_ITEMS = [
 	{ key: "iterations", label: "Iteration" },
@@ -86,13 +80,13 @@ function SwitchRow({
 				onCheckedChange={nextChecked => onCheckedChange(nextChecked)}
 				aria-label={title}
 				className={cn(
-					"group relative h-[18px] w-[34px] shrink-0 rounded-full border border-[#4a4a4a] bg-[#303030] transition-colors",
+					"group relative h-[18px] w-[34px] shrink-0 rounded-full border border-line-strong bg-line transition-colors",
 					"data-[checked]:border-accent/55 data-[checked]:bg-accent/20",
 					"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas",
 					"disabled:cursor-not-allowed disabled:opacity-45",
 				)}
 			>
-				<Switch.Thumb className="absolute top-0.5 left-0.5 size-3 rounded-full bg-[#8f8f8f] transition-transform group-data-[checked]:translate-x-4 group-data-[checked]:bg-accent" />
+				<Switch.Thumb className="absolute top-0.5 left-0.5 size-3 rounded-full bg-faint transition-transform group-data-[checked]:translate-x-4 group-data-[checked]:bg-accent" />
 			</Switch.Root>
 		</div>
 	)
@@ -156,9 +150,14 @@ function AntEditor({
 	}, [ant.id, ant.rules])
 
 	const parsedRules = parseStateMachine(rulesDraft)
+
+	if (parsedRules.rules.length > 256) {
+		parsedRules.rules = parsedRules.rules.slice(0, 256)
+	}
+
 	const rulesValid = parsedRules.valid
 	const rulesHint = rulesValid
-		? `${parsedRules.rules.length} states · ${stringifyStateMachine(parsedRules.rules, " ").trim()}`
+		? `${parsedRules.rules.length}/256 states · ${stringifyStateMachine(parsedRules.rules, " ").trim()}`
 		: "That rule set is not valid. Use R, L, U, C or angles (45/90/135)."
 
 	function applyRules() {
@@ -263,7 +262,7 @@ function AntEditor({
 
 			<div className="flex flex-col gap-1.5">
 				<FieldLabel label="State machine" unit="R L U C" htmlFor="ant-rules" />
-				<div className="grid grid-cols-[minmax(0,1fr)_34px_34px] gap-1.5">
+				<div className="grid grid-cols-[minmax(0,1fr)_34px_34px_34px] gap-1.5">
 					<div
 						className={cn(
 							"flex h-[34px] items-center rounded-control border border-line bg-black/25 px-2.5 transition-[border-color,box-shadow]",
@@ -320,28 +319,23 @@ function AntEditor({
 					>
 						<Dices className="size-3.5" aria-hidden />
 					</Button>
+					<Button
+						size="icon"
+						className="h-[34px] w-[34px]"
+						aria-label="Mirror the rule set"
+						title="Mirror the rule set (swap R and L)"
+						onClick={() => {
+							const next = ant.rules.map(value => (value === DIRECTION.C || value === DIRECTION.U ? value : -value) as DirectionValue)
+							setRulesDraft(stringifyStateMachine(next))
+							onReplaceRules(next)
+						}}
+					>
+						<FlipHorizontal2 className="size-3.5" aria-hidden />
+					</Button>
 				</div>
 				<p id="rules-hint" className={cn("text-2xs leading-relaxed text-faint", !rulesValid && "text-danger-text")}>
 					{rulesHint}
 				</p>
-				<div className="flex flex-wrap gap-1" aria-label="Rule presets">
-					{RULE_PRESETS.map(preset => {
-						const Active = stringifyStateMachine(ant.rules) === preset.label
-						return (
-							<button
-								key={preset.label}
-								type="button"
-								className={cn(CHIP_CLASS, Active && "border-accent/40 bg-accent-soft text-accent-bright")}
-								onClick={() => {
-									setRulesDraft(preset.label)
-									onReplaceRules(preset.rules)
-								}}
-							>
-								{preset.label}
-							</button>
-						)
-					})}
-				</div>
 			</div>
 
 			<div className="flex flex-col gap-1.5">
@@ -415,7 +409,7 @@ export function ControlPanel({
 	return (
 		<aside
 			aria-label="Simulation settings"
-			className="flex min-h-0 flex-col overflow-hidden bg-[#151515] max-lg:flex-none lg:border-l lg:border-line"
+			className="flex min-h-0 flex-col overflow-hidden bg-surface max-lg:flex-none lg:border-l lg:border-line"
 		>
 			<div className="flex shrink-0 items-center justify-between gap-2 border-b border-line px-3.5 py-3">
 				<div className="flex min-w-0 items-center gap-2.5">
@@ -440,7 +434,7 @@ export function ControlPanel({
 
 			<dl className="grid shrink-0 grid-cols-3 gap-px border-b border-line bg-line" aria-label="Simulation statistics">
 				{STAT_ITEMS.map(item => (
-					<div key={item.key} className="min-w-0 bg-[#171717] px-2.5 py-1.5">
+					<div key={item.key} className="min-w-0 bg-surface-raised px-2.5 py-1.5">
 						<dt className="truncate font-sans text-3xs tracking-widest text-faint uppercase">
 							{item.label}
 						</dt>
@@ -573,7 +567,7 @@ export function ControlPanel({
 													Selected && "border-accent/30 bg-accent-soft text-fg",
 												)}
 											>
-												<span className={cn("size-[5px] rounded-full bg-[#5f5f5f]", Selected && "bg-accent shadow-[0_0_8px_rgb(32_192_192/0.6)]")} />
+												<span className={cn("size-[5px] rounded-full bg-line-strong", Selected && "bg-accent shadow-accent-glow")} />
 												<span>Ant {index + 1}</span>
 												<span className="ml-auto truncate font-mono text-3xs text-faint">{stringifyStateMachine(ant.rules)}</span>
 												<ChevronRight className={cn("size-3 text-faint", Selected && "text-accent")} aria-hidden />

@@ -17,7 +17,7 @@ function AboutContent() {
 				<Dialog.Popup
 					className={cn(
 						"relative max-h-[calc(100dvh-48px)] w-full max-w-[600px] overflow-auto rounded-panel",
-						"border border-line bg-[#1e1e1e] text-muted outline-none",
+						"border border-line bg-surface-raised text-muted outline-none",
 						"transition-[opacity,transform] duration-200 data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",
 					)}
 				>
@@ -44,9 +44,10 @@ function AboutContent() {
 							left on a filled one.
 						</p>
 						<p className="mb-2.5">
-							This page runs the simulation in JavaScript and streams the grid to a WebGL2 shader. The{" "}
+							This page runs the simulation in JavaScript and streams the grid to a WebGL2 shader. The simulation uses a uint 8 buffer for all cells, so your state
+							machine is inherently limited to 256 possible opcodes. The{" "}
 							<a
-								className="text-fg underline decoration-[#5a5a5a] underline-offset-2 hover:decoration-fg"
+								className="text-fg underline decoration-line-strong underline-offset-2 hover:decoration-fg"
 								href="https://github.com/rafa-br34/LangtonsAnt"
 								target="_blank"
 								rel="noopener"
@@ -103,7 +104,7 @@ function AboutContent() {
 						<p className="mt-4 text-2xs text-faint">
 							Made by{" "}
 							<a
-								className="text-fg underline decoration-[#5a5a5a] underline-offset-2 hover:decoration-fg"
+								className="text-fg underline decoration-line-strong underline-offset-2 hover:decoration-fg"
 								href="https://rafa-br34.dev"
 								target="_blank"
 								rel="noopener"
