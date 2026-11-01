@@ -18,6 +18,8 @@ out vec4 o_FragColor;
 #define U8(V) uint(int(V) % 256)
 #define FU8(V) float(U8(V)) / 255.0
 
+const vec3 BORDER_COLOR = vec3(0.125, 0.753, 0.753);
+
 vec3 GetColor(uint S) {
 	// This won't create a very high quality random number but it doesn't really matter.
 	XOR_SHIFT32(S); S *= 0x9E3779B9u;
@@ -42,21 +44,16 @@ vec3 SampleGrid(vec2 grid) {
 }
 
 void main() {
-	// Screen space: 0,0 is the top-left corner.
 	vec2 screen = vec2(v_Screen.x, -v_Screen.y) * 0.5 + 0.5;
-
-	// Camera works in normalized grid space, then the letterbox scale keeps the
-	// cells square when the canvas is not square.
 	vec2 grid = ScreenToGrid(screen);
 
 	if (grid.x < 0.0 || grid.x >= 1.0 || grid.y < 0.0 || grid.y >= 1.0) {
-		// Draw a one-pixel outline just outside the texture so the world bounds
-		// are visible even while zoomed out or panned.
 		vec2 clampedGrid = clamp(grid, 0.0, 1.0);
 		vec2 distanceInPixels = abs(grid - clampedGrid) * u_Zoom * u_Scale * u_ViewportSize;
+		float borderCoverage = 1.0 - smoothstep(1.0, 2.0, max(distanceInPixels.x, distanceInPixels.y));
 
-		if (max(distanceInPixels.x, distanceInPixels.y) <= 1.0) {
-			o_FragColor = vec4(1.0);
+		if (borderCoverage > 0.0) {
+			o_FragColor = vec4(BORDER_COLOR * borderCoverage, 1.0);
 			return;
 		}
 
@@ -65,9 +62,6 @@ void main() {
 	}
 
 	if (u_Antialias > 0.5) {
-		// Only supersample pixels that actually straddle a cell boundary. This
-		// keeps flat cell interiors as one crisp sample instead of blurring the
-		// whole pattern, and avoids paying for 16 samples almost everywhere.
 		vec2 gridSize = vec2(textureSize(u_Grid, 0));
 		vec2 cell = grid * gridSize;
 		vec2 footprint = gridSize / (u_Zoom * u_Scale * u_ViewportSize);
@@ -75,9 +69,6 @@ void main() {
 		vec2 fraction = fract(cell);
 
 		if (any(lessThan(fraction, halfFootprint)) || any(greaterThan(fraction, 1.0 - halfFootprint))) {
-			// 4x4 supersampling inside the pixel footprint. Sampling inside the
-			// pixel (instead of on its shared corners) means adjacent pixels do
-			// not both soften around the same edge.
 			vec3 color = vec3(0.0);
 
 			for (int y = 0; y < 4; y++) {

@@ -16,15 +16,12 @@ import {
 	Bug,
 	ChevronRight,
 	Dices,
-	ExternalLink,
-	Link2,
 	Plus,
 	Shuffle,
 } from "lucide-react"
 import { type ReactNode, useEffect, useState } from "react"
 
 import { AboutDialog } from "@/components/about-dialog"
-import { GithubIcon } from "@/components/github-icon"
 import { NumberInput } from "@/components/number-input"
 import { Button } from "@/components/ui/button"
 import { type AntConfig, DIRECTION_VALUES, directionLabel, type DirectionValue, parseStateMachine, stringifyStateMachine } from "@/lib/ant"
@@ -32,6 +29,7 @@ import { MAX_GRID, type WorldConfig } from "@/lib/share"
 import { MAX_IPF } from "@/lib/simulation"
 import type { SimulationStats } from "@/lib/stats"
 import { cn } from "@/lib/utils"
+import { SiGithub } from "react-icons/si"
 
 interface ControlPanelProps {
 	world: WorldConfig
@@ -50,7 +48,6 @@ interface ControlPanelProps {
 	onResize: (width: number, height: number) => void
 	onIpfChange: (value: number) => void
 	onAntialiasChange: (value: boolean) => void
-	onCopyLink: () => void
 }
 
 const SPEEDS = [1, 10, 100, 1000] as const
@@ -166,7 +163,6 @@ export function ControlPanel({
 	onResize,
 	onIpfChange,
 	onAntialiasChange,
-	onCopyLink,
 }: ControlPanelProps) {
 	const [rulesDraft, setRulesDraft] = useState("RL")
 
@@ -234,7 +230,7 @@ export function ControlPanel({
 						title="View source on GitHub"
 						className="grid size-8 place-items-center rounded-control border border-line bg-white/[0.03] text-muted transition-colors hover:border-line-strong hover:bg-white/[0.06] hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
 					>
-						<GithubIcon className="size-4" />
+						<SiGithub className="size-4" aria-hidden />
 					</a>
 				</div>
 			</div>
@@ -638,32 +634,6 @@ export function ControlPanel({
 				<span>
 					<kbd className="mr-1">R</kbd>reset
 				</span>
-			</div>
-
-			<div className="flex shrink-0 items-center justify-between gap-2 border-t border-line bg-black/25 px-3 py-2">
-				<Button size="small" onClick={onCopyLink}>
-					<Link2 className="size-3" aria-hidden />
-					Copy link
-				</Button>
-				<div className="flex items-center gap-3">
-					<a
-						className="inline-flex items-center gap-1 px-1 py-1 text-[10.5px] text-faint transition-colors hover:text-fg"
-						href="https://github.com/rafa-br34/LangtonsAnt#readme"
-						target="_blank"
-						rel="noopener"
-					>
-						Docs
-						<ExternalLink className="size-2.5" aria-hidden />
-					</a>
-					<a
-						className="px-1 py-1 text-[10.5px] text-faint transition-colors hover:text-fg"
-						href="https://en.wikipedia.org/wiki/Langton%27s_ant"
-						target="_blank"
-						rel="noopener"
-					>
-						Wikipedia
-					</a>
-				</div>
 			</div>
 		</aside>
 	)

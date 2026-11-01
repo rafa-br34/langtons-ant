@@ -1,20 +1,42 @@
 "use client"
 
-import { Download, Pause, Play, RotateCcw, Scan, StepForward } from "lucide-react"
+import { Separator } from "@base-ui/react/separator"
+import { Download, Link2, type LucideIcon, Pause, Play, RotateCcw, Scan, StepForward } from "lucide-react"
 import type { RefObject } from "react"
 
-import { Button } from "@/components/ui/button"
+import { Button, type ButtonProps } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-interface StageProps {
-	canvasRef: RefObject<HTMLCanvasElement | null>
-	running: boolean
-	error: string | null
-	onToggleRun: () => void
-	onStep: () => void
-	onReset: () => void
-	onResetCamera: () => void
-	onSaveImage: () => void
+interface StageButtonProps extends Omit<ButtonProps, "title"> {
+	icon: LucideIcon
+	title: string
+	hideLabelOnMobile?: boolean
+}
+
+function StageButton({
+	icon: Icon,
+	title,
+	hideLabelOnMobile = true,
+	variant = "ghost",
+	className,
+	children,
+	...props
+}: Readonly<StageButtonProps>) {
+	return (
+		<Button
+			variant={variant}
+			className={cn(
+				variant === "ghost" && "text-muted hover:border-white/15 hover:bg-white/[0.08] hover:text-fg",
+				className,
+			)}
+			{...props}
+			aria-label={title}
+			title={title}
+		>
+			<Icon className="size-3.5" aria-hidden />
+			<span className={hideLabelOnMobile ? "max-sm:hidden" : undefined}>{children}</span>
+		</Button>
+	)
 }
 
 export function Stage({
@@ -26,7 +48,18 @@ export function Stage({
 	onReset,
 	onResetCamera,
 	onSaveImage,
-}: StageProps) {
+	onCopyLink,
+}: {
+	readonly canvasRef: RefObject<HTMLCanvasElement | null>
+	readonly running: boolean
+	readonly error: string | null
+	readonly onToggleRun: () => void
+	readonly onStep: () => void
+	readonly onReset: () => void
+	readonly onResetCamera: () => void
+	readonly onSaveImage: () => void
+	readonly onCopyLink: () => void
+}) {
 	return (
 		<section
 			id="simulator"
@@ -45,73 +78,45 @@ export function Stage({
 
 			<div className="pointer-events-none absolute inset-0 z-[1] stage-scrim" />
 
-			<div className="pointer-events-none absolute top-3 left-3 z-10 flex items-center gap-2">
-				<span
-					className={cn(
-						"inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-[10.5px] whitespace-nowrap backdrop-blur-md transition-colors",
-						running
-							? "border-accent/35 bg-black/55 text-fg-1"
-							: "border-white/10 bg-black/55 text-muted",
-					)}
-					role="status"
-				>
-					<span className={cn("size-1.5 rounded-full", running ? "animate-run-pulse bg-accent" : "bg-faint")} />
-					{running ? "Running" : "Paused"}
-				</span>
-			</div>
-
-			<div className="pointer-events-none absolute top-3 right-3 z-10 hidden items-center gap-2 rounded-full border border-white/10 bg-black/45 px-2.5 py-1 text-[9.5px] whitespace-nowrap text-muted backdrop-blur-md sm:flex">
-				<span>
-					<kbd>Drag</kbd> pan
-				</span>
-				<span className="text-white/20">·</span>
-				<span>
-					<kbd>Scroll</kbd> zoom
-				</span>
-				<span className="text-white/20">·</span>
-				<span>
-					<kbd>Space</kbd> run
-				</span>
-			</div>
-
 			<div className="absolute inset-x-0 bottom-3 z-10 flex justify-center px-3">
 				<div
-					className="pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-1.5 rounded-panel border border-white/10 bg-black/65 p-1.5 shadow-[0_12px_40px_rgb(0_0_0/0.45)] backdrop-blur-md"
+					className="pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-1 rounded-panel border border-white/10 bg-black/65 p-1 shadow-[0_12px_40px_rgb(0_0_0/0.45)] backdrop-blur-md sm:gap-1.5 sm:p-1.5"
 					role="toolbar"
 					aria-label="Simulation controls"
 				>
-					<Button variant="primary" className="min-w-[88px]" aria-pressed={running} onClick={onToggleRun}>
-						{running ? <Pause className="size-3.5" aria-hidden /> : <Play className="size-3.5" aria-hidden />}
+					<StageButton
+						variant="primary"
+						className="min-w-[120px] sm:min-w-[140px]"
+						icon={running ? Pause : Play}
+						title={running ? "Pause the simulation" : "Start the simulation"}
+						hideLabelOnMobile={false}
+						aria-pressed={running}
+						onClick={onToggleRun}
+					>
 						{running ? "Pause" : "Start"}
-					</Button>
-					<Button className="border-white/10 bg-white/[0.06] text-fg-1 hover:border-white/20" onClick={onStep}>
-						<StepForward className="size-3.5" aria-hidden />
+					</StageButton>
+					<StageButton
+						variant="default"
+						className="border-white/10 bg-white/[0.06] text-fg-1 hover:border-white/20"
+						icon={StepForward}
+						title="Step one frame"
+						onClick={onStep}
+					>
 						Step
-					</Button>
-					<Button className="border-white/10 bg-white/[0.06] text-fg-1 hover:border-white/20" onClick={onReset}>
-						<RotateCcw className="size-3.5" aria-hidden />
+					</StageButton>
+					<StageButton
+						variant="default"
+						className="border-white/10 bg-white/[0.06] text-fg-1 hover:border-white/20"
+						icon={RotateCcw}
+						title="Reset the run"
+						onClick={onReset}
+					>
 						Reset
-					</Button>
-					<span className="mx-1 hidden h-5 w-px bg-white/10 sm:block" />
-					<Button
-						variant="ghost"
-						className="text-muted hover:border-white/15 hover:bg-white/[0.08] hover:text-fg"
-						aria-label="Save the texture as a PNG"
-						title="Save the texture as a PNG"
-						onClick={onSaveImage}
-					>
-						<Download className="size-3.5" aria-hidden />
-						<span className="max-sm:hidden">Save PNG</span>
-					</Button>
-					<Button
-						variant="ghost"
-						className="text-muted hover:border-white/15 hover:bg-white/[0.08] hover:text-fg"
-						aria-label="Reset the camera view"
-						onClick={onResetCamera}
-					>
-						<Scan className="size-3.5" aria-hidden />
-						<span className="max-sm:hidden">Reset view</span>
-					</Button>
+					</StageButton>
+					<Separator orientation="vertical" className="mx-0.5 hidden h-full w-px bg-white/10 sm:block" />
+					<StageButton icon={Download} title="Save the texture as a PNG" onClick={onSaveImage}>Save PNG</StageButton>
+					<StageButton icon={Link2} title="Copy link" onClick={onCopyLink}>Copy link</StageButton>
+					<StageButton icon={Scan} title="Reset the camera view" onClick={onResetCamera}>Reset view</StageButton>
 				</div>
 			</div>
 

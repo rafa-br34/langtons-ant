@@ -96,6 +96,25 @@ function AboutContent() {
 							</a>
 							. Third-party content belongs to its respective owners.
 						</p>
+
+						<div className="mt-4 flex items-center gap-4 border-t border-white/5 pt-3 text-[10.5px]">
+							<a
+								className="text-fg-1 underline decoration-[#5a5a5a] underline-offset-2 hover:decoration-fg"
+								href="https://github.com/rafa-br34/LangtonsAnt#readme"
+								target="_blank"
+								rel="noopener"
+							>
+								Docs
+							</a>
+							<a
+								className="text-fg-1 underline decoration-[#5a5a5a] underline-offset-2 hover:decoration-fg"
+								href="https://en.wikipedia.org/wiki/Langton%27s_ant"
+								target="_blank"
+								rel="noopener"
+							>
+								Wikipedia
+							</a>
+						</div>
 					</div>
 				</Dialog.Popup>
 			</Dialog.Viewport>

@@ -63,15 +63,11 @@ function clampCamera(camera: Camera, canvas: HTMLCanvasElement | null, gridWidth
 	const halfX = 0.5 / Math.max(0.0001, camera.zoom * scale.x)
 	const halfY = 0.5 / Math.max(0.0001, camera.zoom * scale.y)
 
-	// When the whole grid fits, keep the center inside the grid bounds so the
-	// view can still be dragged around a little instead of feeling frozen.
-	const minX = halfX >= 0.5 ? 0 : halfX
-	const maxX = halfX >= 0.5 ? 1 : 1 - halfX
-	const minY = halfY >= 0.5 ? 0 : halfY
-	const maxY = halfY >= 0.5 ? 1 : 1 - halfY
-
-	camera.x = clamp(camera.x, minX, maxX)
-	camera.y = clamp(camera.y, minY, maxY)
+	// If an axis fits entirely, keep it centered. Otherwise clamp the camera so
+	// the viewport stays inside the grid; letting the center reach 0 here made
+	// border-zoom jump to 0, 0.
+	camera.x = halfX >= 0.5 ? 0.5 : clamp(camera.x, halfX, 1 - halfX)
+	camera.y = halfY >= 0.5 ? 0.5 : clamp(camera.y, halfY, 1 - halfY)
 }
 
 export function Simulator() {
@@ -724,6 +720,7 @@ export function Simulator() {
 					onReset={reset}
 					onResetCamera={resetCamera}
 					onSaveImage={saveImage}
+					onCopyLink={copyLink}
 				/>
 				<ControlPanel
 					world={world}
@@ -742,7 +739,6 @@ export function Simulator() {
 					onResize={resize}
 					onIpfChange={changeIpf}
 					onAntialiasChange={setAntialias}
-					onCopyLink={copyLink}
 				/>
 			</main>
 
