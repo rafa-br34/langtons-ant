@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 
-import { clamp, cn } from "@/lib/utils"
+import { clamp, cn, parseNumericExpression } from "@/lib/utils"
 
 export interface NumberInputProps {
 	value: number
@@ -10,7 +10,6 @@ export interface NumberInputProps {
 	id?: string
 	min?: number
 	max?: number
-	step?: number
 	prefix?: string
 	disabled?: boolean
 	commitOnBlur?: boolean
@@ -24,7 +23,6 @@ export function NumberInput({
 	id,
 	min = 0,
 	max = 100000,
-	step = 1,
 	prefix,
 	disabled = false,
 	commitOnBlur = false,
@@ -41,9 +39,9 @@ export function NumberInput({
 	}, [value])
 
 	function commit() {
-		const parsed = Number(draft)
+		const parsed = parseNumericExpression(draft, min, max)
 
-		if (!Number.isFinite(parsed)) {
+		if (parsed === null) {
 			setDraft(String(value))
 			return
 		}
@@ -63,8 +61,8 @@ export function NumberInput({
 			return
 		}
 
-		const parsed = Number(raw)
-		if (!Number.isFinite(parsed)) {
+		const parsed = parseNumericExpression(raw, min, max)
+		if (parsed === null) {
 			return
 		}
 
@@ -86,14 +84,15 @@ export function NumberInput({
 			{prefix ? <span className="shrink-0 font-mono text-2xs text-faint">{prefix}</span> : null}
 			<input
 				id={id}
-				type="number"
-				inputMode="numeric"
+				type="text"
+				inputMode="text"
 				value={draft}
-				min={min}
-				max={max}
-				step={step}
 				disabled={disabled}
+				spellCheck={false}
+				autoComplete="off"
 				aria-label={ariaLabel}
+				aria-description="Math expressions are allowed, for example 50%+1024."
+				title="Math expressions are allowed, for example 50%+1024."
 				className="h-full w-full min-w-0 bg-transparent font-mono text-xs tabular-nums text-fg outline-none disabled:cursor-not-allowed disabled:text-faint"
 				onFocus={() => {
 					focused.current = true

@@ -1,28 +1,37 @@
 "use client"
 
+import { cn } from "@/lib/utils"
 import { Dialog } from "@base-ui/react/dialog"
 import { Info, X } from "lucide-react"
 import { useEffect, useState } from "react"
+
+function Opcode({ code }: { readonly code: string }) {
+	return <code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">{code}</code>
+}
 
 function AboutContent() {
 	return (
 		<Dialog.Portal>
 			<Dialog.Backdrop className="fixed inset-0 z-40 bg-black/55 backdrop-blur-[6px] transition-opacity duration-150 data-[starting-style]:opacity-0 data-[ending-style]:opacity-0" />
 			<Dialog.Viewport className="fixed inset-0 z-50 grid place-items-center overflow-y-auto p-4">
-				<Dialog.Popup className="relative max-h-[calc(100dvh-48px)] w-full max-w-[600px] overflow-auto rounded-panel border border-line bg-[#1e1e1e] text-muted shadow-[0_40px_120px_rgb(0_0_0/0.7)] outline-none transition-[opacity,transform] duration-200 data-[starting-style]:scale-[0.985] data-[starting-style]:opacity-0 data-[ending-style]:scale-[0.985] data-[ending-style]:opacity-0">
+				<Dialog.Popup
+					className={cn(
+						"relative max-h-[calc(100dvh-48px)] w-full max-w-[600px] overflow-auto rounded-panel",
+						"border border-line bg-[#1e1e1e] text-muted outline-none",
+						"transition-[opacity,transform] duration-200 data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",
+					)}
+				>
 					<Dialog.Description className="sr-only">
-						About Langton&apos;s ant and how to use the interactive simulator.
+						About Langton's ant and how to use the interactive simulator.
 					</Dialog.Description>
 
-					<div className="flex items-center justify-between gap-4 border-b border-line bg-white/[0.014] px-[18px] py-4">
+					<div className="flex items-center justify-between gap-4 border-b border-line bg-white/[0.014] px-[18px] py-2">
 						<div>
 							<span className="font-mono text-2xs tracking-widest text-faint uppercase">About</span>
-							<Dialog.Title className="mt-0.5 text-lg font-semibold tracking-tight text-fg">
-								Langton&apos;s ant
-							</Dialog.Title>
+							<Dialog.Title className="mt-0.5 text-lg font-semibold tracking-tight text-fg">Langton's ant</Dialog.Title>
 						</div>
 						<Dialog.Close
-							className="grid size-8 place-items-center rounded-control border border-line bg-white/[0.03] text-muted transition-colors hover:border-line-strong hover:bg-white/[0.06] hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+							className="grid size-8 place-items-center rounded-control border border-line text-muted transition-colors hover:border-line-strong hover:bg-white/[0.06] hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
 							aria-label="Close dialog"
 						>
 							<X className="size-4" aria-hidden />
@@ -31,9 +40,8 @@ function AboutContent() {
 
 					<div className="px-[18px] py-[18px] text-xs leading-relaxed">
 						<p className="mb-2.5">
-							Langton&apos;s ant is a two-dimensional Turing machine. The ant walks a grid, turning according to the state machine written on its current cell. Turn
-							right on a blank cell, left on a filled one, and a few million steps later a chaotic cloud snaps into a repeating{" "}
-							<em className="text-fg-1">highway</em>.
+							Langton's ant is a two-dimensional Turing machine. The ant walks a grid, turning according to the state of the current cell. Turn right on a blank cell,
+							left on a filled one.
 						</p>
 						<p className="mb-2.5">
 							This page runs the simulation in JavaScript and streams the grid to a WebGL2 shader. The{" "}
@@ -68,22 +76,30 @@ function AboutContent() {
 						</dl>
 
 						<h3 className="mt-5 mb-2 text-2xs font-semibold tracking-widest text-fg-1 uppercase">State machines</h3>
-						<p>
-							Each character is one step of the machine:{" "}
-							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">
-								R
-							</code>/<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">L</code> turn 90°,{" "}
-							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">
-								R45
-							</code>/<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">L45</code> and{" "}
-							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">
-								R135
-							</code>/<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">L135</code> turn diagonally,
-							{" "}
-							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">U</code> reverses, and{" "}
-							<code className="rounded-[3px] border border-line bg-black/30 px-1 py-0.5 font-mono text-xs text-accent-bright">C</code>{" "}
-							continues straight. A cell cycles through the machine&apos;s states as the ant visits it.
-						</p>
+						<div>
+							<p>The following operation codes can be used for the state machine:</p>
+							<ul className="mt-2 list-disc space-y-1 pl-5">
+								<li>
+									<Opcode code="R" />/<Opcode code="R90" /> turn right 90°
+								</li>
+								<li>
+									<Opcode code="L" />/<Opcode code="L90" /> turn left 90°
+								</li>
+								<li>
+									<Opcode code="R45" />/<Opcode code="L45" /> turn 45° diagonally
+								</li>
+								<li>
+									<Opcode code="R135" />/<Opcode code="L135" /> turn 135° diagonally
+								</li>
+								<li>
+									<Opcode code="U" /> reverse direction (180°)
+								</li>
+								<li>
+									<Opcode code="C" /> continue straight
+								</li>
+							</ul>
+							<p className="mt-2.5">Cells cycle through each state as the ant visits it.</p>
+						</div>
 						<p className="mt-4 text-2xs text-faint">
 							Made by{" "}
 							<a
@@ -93,28 +109,8 @@ function AboutContent() {
 								rel="noopener"
 							>
 								rafa_br34
-							</a>
-							. Third-party content belongs to its respective owners.
+							</a>.
 						</p>
-
-						<div className="mt-4 flex items-center gap-4 border-t border-white/5 pt-3 text-2xs">
-							<a
-								className="text-fg-1 underline decoration-[#5a5a5a] underline-offset-2 hover:decoration-fg"
-								href="https://github.com/rafa-br34/LangtonsAnt#readme"
-								target="_blank"
-								rel="noopener"
-							>
-								Docs
-							</a>
-							<a
-								className="text-fg-1 underline decoration-[#5a5a5a] underline-offset-2 hover:decoration-fg"
-								href="https://en.wikipedia.org/wiki/Langton%27s_ant"
-								target="_blank"
-								rel="noopener"
-							>
-								Wikipedia
-							</a>
-						</div>
 					</div>
 				</Dialog.Popup>
 			</Dialog.Viewport>

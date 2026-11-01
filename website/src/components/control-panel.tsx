@@ -4,7 +4,7 @@ import { Switch } from "@base-ui/react/switch"
 import { Tabs } from "@base-ui/react/tabs"
 import { Toggle } from "@base-ui/react/toggle"
 import { ToggleGroup } from "@base-ui/react/toggle-group"
-import { ArrowDown, ArrowDownLeft, ArrowDownRight, ArrowLeft, ArrowRight, ArrowUp, ArrowUpLeft, ArrowUpRight, Bug, ChevronRight, Dices, Plus, Shuffle } from "lucide-react"
+import { ArrowDown, ArrowDownLeft, ArrowDownRight, ArrowLeft, ArrowRight, ArrowUp, ArrowUpLeft, ArrowUpRight, ChevronRight, Dices, PlayingCard, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { AboutDialog } from "@/components/about-dialog"
@@ -15,6 +15,7 @@ import { MAX_GRID, type WorldConfig } from "@/lib/share"
 import { MAX_IPF } from "@/lib/simulation"
 import type { SimulationStats } from "@/lib/stats"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 import { SiGithub } from "react-icons/si"
 
 const SPEEDS = [1, 100, 10000, 100000] as const
@@ -194,7 +195,7 @@ function AntEditor({
 				</div>
 			</div>
 
-			<div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3">
+			<div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
 				<div className="flex flex-col gap-1.5">
 					<FieldLabel label="Facing" unit="8-way" />
 					<div className="grid grid-cols-3 grid-rows-3 gap-[3px]" role="group" aria-label="Initial ant direction">
@@ -239,7 +240,7 @@ function AntEditor({
 					</div>
 				</div>
 
-				<div className="flex min-w-0 flex-col gap-2.5">
+				<div className="flex min-w-0 flex-col justify-between gap-2.5">
 					<div className="flex flex-col gap-1.5">
 						<FieldLabel label="Step size" unit="cells" />
 						<NumberInput
@@ -304,7 +305,7 @@ function AntEditor({
 							onReplaceRules(next)
 						}}
 					>
-						<Dices className="size-3.5" aria-hidden />
+						<PlayingCard className="size-3.5" aria-hidden />
 					</Button>
 					<Button
 						size="icon"
@@ -317,7 +318,7 @@ function AntEditor({
 							onReplaceRules(next)
 						}}
 					>
-						<Shuffle className="size-3.5" aria-hidden />
+						<Dices className="size-3.5" aria-hidden />
 					</Button>
 				</div>
 				<p id="rules-hint" className={cn("text-2xs leading-relaxed text-faint", !rulesValid && "text-danger-text")}>
@@ -418,14 +419,8 @@ export function ControlPanel({
 		>
 			<div className="flex shrink-0 items-center justify-between gap-2 border-b border-line px-3.5 py-3">
 				<div className="flex min-w-0 items-center gap-2.5">
-					<span className="grid size-8 shrink-0 place-items-center rounded-control border border-line bg-gradient-to-br from-[#2a2a2a] to-[#191919] text-accent shadow-[inset_0_1px_0_rgb(255_255_255/0.06)]">
-						<Bug className="size-4" aria-hidden />
-					</span>
-					<div className="min-w-0">
-						<span className="block truncate text-sm leading-tight font-semibold tracking-tight text-fg">
-							Langton&apos;s Ant
-						</span>
-					</div>
+					<Image src="/favicon.png" alt="Langton's ant demo" width={38} height={38} className="grid size-8 rounded-control border border-line" aria-hidden />
+					<span className="min-w-0 block truncate text-sm leading-tight font-semibold tracking-tight text-fg">Langton's Ant</span>
 				</div>
 
 				<div className="flex shrink-0 items-center gap-1">
@@ -460,10 +455,7 @@ export function ControlPanel({
 				<Tabs.List className="flex shrink-0 gap-[3px] border-b border-line bg-black/15 p-1.5" aria-label="Control panels">
 					<Tabs.Tab value="simulation" className={TAB_CLASS}>Simulation</Tabs.Tab>
 					<Tabs.Tab value="ant" className={TAB_CLASS}>
-						Ant
-						<span className="inline-grid min-w-4 place-items-center rounded-full border border-line px-1 font-mono text-3xs text-faint">
-							{world.ants.length}
-						</span>
+						Ant <span className="inline-grid min-w-4 place-items-center rounded-full border border-line px-1 font-mono text-3xs text-faint">{world.ants.length}</span>
 					</Tabs.Tab>
 				</Tabs.List>
 
@@ -512,7 +504,7 @@ export function ControlPanel({
 							/>
 							<ToggleGroup
 								value={SPEEDS.map(String).includes(String(ipf)) ? [String(ipf)] : []}
-								onValueChange={(values) => {
+								onValueChange={values => {
 									const next = Number(values.at(-1))
 									if (Number.isFinite(next)) {
 										onIpfChange(next)
@@ -521,11 +513,7 @@ export function ControlPanel({
 								className="mt-1 flex flex-wrap gap-1"
 								aria-label="Speed presets"
 							>
-								{SPEEDS.map((speed) => (
-									<Toggle key={speed} value={String(speed)} className={CHIP_CLASS}>
-										{speed}×
-									</Toggle>
-								))}
+								{SPEEDS.map(speed => <Toggle key={speed} value={String(speed)} className={CHIP_CLASS}>{speed}x</Toggle>)}
 							</ToggleGroup>
 						</div>
 
@@ -534,7 +522,7 @@ export function ControlPanel({
 						<div className="flex flex-col gap-1.5">
 							<SwitchRow
 								title="Antialiasing"
-								description="4×4 shader supersampling"
+								description="4x4 shader supersampling"
 								checked={antialias}
 								disabled={false}
 								onCheckedChange={onAntialiasChange}
@@ -567,7 +555,7 @@ export function ControlPanel({
 							{world.ants.length === 0
 								? (
 									<p className="grid min-h-[56px] place-items-center px-2.5 text-center text-2xs text-faint">
-										No ants yet — add one to start the walk.
+										No ants yet, add one to start the walk.
 									</p>
 								)
 								: (
