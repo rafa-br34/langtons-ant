@@ -4,19 +4,19 @@ import { Switch } from "@base-ui/react/switch"
 import { Tabs } from "@base-ui/react/tabs"
 import { Toggle } from "@base-ui/react/toggle"
 import { ToggleGroup } from "@base-ui/react/toggle-group"
-import { ArrowDown, ArrowDownLeft, ArrowDownRight, ArrowLeft, ArrowRight, ArrowUp, ArrowUpLeft, ArrowUpRight, ChevronRight, Dices, FlipHorizontal2, PlayingCard, Plus } from "lucide-react"
+import { ChevronRight, Dices, FlipHorizontal2, PlayingCard, Plus } from "lucide-react"
+import Image from "next/image"
 import { useEffect, useState } from "react"
+import { SiGithub } from "react-icons/si"
 
 import { AboutDialog } from "@/components/about-dialog"
 import { NumberInput } from "@/components/number-input"
 import { Button } from "@/components/ui/button"
-import { type AntConfig, DIRECTION, DIRECTION_VALUES, directionLabel, type DirectionValue, parseStateMachine, stringifyStateMachine } from "@/lib/ant"
+import { type AntConfig, DIRECTION, DIRECTION_TABLE, DIRECTION_VALUES, directionLabel, type DirectionValue, parseStateMachine, stringifyStateMachine } from "@/lib/ant"
 import { MAX_GRID, type WorldConfig } from "@/lib/share"
 import { MAX_IPF } from "@/lib/simulation"
 import type { SimulationStats } from "@/lib/stats"
 import { cn } from "@/lib/utils"
-import Image from "next/image"
-import { SiGithub } from "react-icons/si"
 
 const SPEEDS = [1, 100, 10000, 100000] as const
 
@@ -42,18 +42,6 @@ const CHIP_CLASS = cn(
 	"data-[pressed]:border-accent/40 data-[pressed]:bg-accent-soft data-[pressed]:text-accent-bright",
 	"disabled:pointer-events-none disabled:opacity-35",
 )
-
-const DIRECTIONS = [
-	{ dx: -1, dy: -1, label: "North west", dir: "NW", icon: ArrowUpLeft, position: "col-start-1 row-start-1" },
-	{ dx: 0, dy: -1, label: "North", dir: "N", icon: ArrowUp, position: "col-start-2 row-start-1" },
-	{ dx: 1, dy: -1, label: "North east", dir: "NE", icon: ArrowUpRight, position: "col-start-3 row-start-1" },
-	{ dx: -1, dy: 0, label: "West", dir: "W", icon: ArrowLeft, position: "col-start-1 row-start-2" },
-	{ dx: 0, dy: 0, label: "Center", icon: null, position: "col-start-2 row-start-2" },
-	{ dx: 1, dy: 0, label: "East", dir: "E", icon: ArrowRight, position: "col-start-3 row-start-2" },
-	{ dx: -1, dy: 1, label: "South west", dir: "SW", icon: ArrowDownLeft, position: "col-start-1 row-start-3" },
-	{ dx: 0, dy: 1, label: "South", dir: "S", icon: ArrowDown, position: "col-start-2 row-start-3" },
-	{ dx: 1, dy: 1, label: "South east", dir: "SE", icon: ArrowDownRight, position: "col-start-3 row-start-3" },
-] as const
 
 function SwitchRow({
 	title,
@@ -197,8 +185,9 @@ function AntEditor({
 			<div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
 				<div className="flex flex-col gap-1.5">
 					<FieldLabel label="Facing" unit="8-way" />
-					<div className="grid grid-cols-3 grid-rows-3 gap-[3px]" role="group" aria-label="Initial ant direction">
-						{DIRECTIONS.map(direction => {
+					<fieldset className="grid min-w-0 grid-cols-3 grid-rows-3 gap-[3px] border-0 p-0">
+						<legend className="sr-only">Initial ant direction</legend>
+						{DIRECTION_TABLE.map(direction => {
 							const Active = ant.dx === direction.dx && ant.dy === direction.dy
 							const Icon = direction.icon
 
@@ -236,7 +225,7 @@ function AntEditor({
 								</button>
 							)
 						})}
-					</div>
+					</fieldset>
 				</div>
 
 				<div className="flex min-w-0 flex-col justify-between gap-2.5">
@@ -261,7 +250,7 @@ function AntEditor({
 			</div>
 
 			<div className="flex flex-col gap-1.5">
-				<FieldLabel label="State machine" unit="R L U C" htmlFor="ant-rules" />
+				<FieldLabel label="State machine" unit="OPCODES" htmlFor="ant-rules" />
 				<div className="grid grid-cols-[minmax(0,1fr)_34px_34px_34px] gap-1.5">
 					<div
 						className={cn(
@@ -425,7 +414,11 @@ export function ControlPanel({
 						rel="noopener"
 						aria-label="View source on GitHub"
 						title="View source on GitHub"
-						className="grid size-8 place-items-center rounded-control border border-line bg-white/[0.03] text-muted transition-colors hover:border-line-strong hover:bg-white/[0.06] hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+						className={cn(
+							"grid size-8 place-items-center rounded-control",
+							"border border-line bg-white/[0.03] text-muted transition-colors hover:border-line-strong hover:bg-white/[0.06] hover:text-fg",
+							"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+						)}
 					>
 						<SiGithub className="size-4" aria-hidden />
 					</a>
@@ -543,13 +536,13 @@ export function ControlPanel({
 						</div>
 
 						<div
-							className="mt-2 flex max-h-40 min-h-[66px] flex-col gap-1 overflow-y-auto rounded-control border border-line bg-black/15 p-1"
+							className="mt-2 flex max-h-40 min-h-[30px] flex-col gap-1 overflow-y-auto rounded-control border border-line bg-black/15 p-1"
 							aria-label="Ant list"
 						>
 							{world.ants.length === 0
 								? (
-									<p className="grid min-h-[56px] place-items-center px-2.5 text-center text-2xs text-faint">
-										No ants yet, add one to start the walk.
+									<p className="grid min-h-[30px] place-items-center px-2.5 text-center text-2xs text-faint">
+										No ants yet, add one to start.
 									</p>
 								)
 								: (
@@ -589,7 +582,7 @@ export function ControlPanel({
 									onReplaceRules={onReplaceRules}
 								/>
 							)
-							: world.ants.length > 0
+							: world.ants.length > 0 // NOSONAR typescript:S3358
 							? (
 								<p className="rounded-control border border-dashed border-line px-3 py-2 text-2xs leading-relaxed text-faint">
 									Select an ant above to edit its position, rules and switches.

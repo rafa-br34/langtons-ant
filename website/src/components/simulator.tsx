@@ -4,10 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 import { ControlPanel } from "@/components/control-panel"
 import { Stage } from "@/components/stage"
-import { type AntConfig, createAntId, createDefaultAnt, type DirectionValue, randomRules } from "@/lib/ant"
+import { type AntConfig, createAntId, createDefaultAnt, DIRECTION_TABLE, type DirectionValue, randomRules, stringifyStateMachine } from "@/lib/ant"
 import { type Camera, createRenderer, type Renderer } from "@/lib/renderer"
-import { DEFAULT_WORLD, MAX_GRID, readWorldFromLocation, type WorldConfig, writeWorldToLocation } from "@/lib/share"
-import { FrameTimer, MAX_IPF, Simulation } from "@/lib/simulation"
+import { DEFAULT_WORLD, MAX_GRID, readStateFromLocation, type WorldConfig, writeStateToLocation } from "@/lib/share"
+import { DEFAULT_IPF, FrameTimer, MAX_IPF, Simulation } from "@/lib/simulation"
 import { EMPTY_STATS, type SimulationStats } from "@/lib/stats"
 import { textureToPngBlob } from "@/lib/texture-export"
 import { basePath, clamp, cn, measureData, round } from "@/lib/utils"
@@ -74,7 +74,7 @@ export function Simulator() {
 	const [world, setWorld] = useState<WorldConfig>(() => cloneWorld(DEFAULT_WORLD))
 	const [selectedId, setSelectedId] = useState<string | null>(DEFAULT_WORLD.ants[0]?.id ?? null)
 	const [running, setRunning] = useState(false)
-	const [ipf, setIpf] = useState(10)
+	const [ipf, setIpf] = useState(DEFAULT_IPF)
 	const [antialias, setAntialias] = useState(true)
 	const [pixelGrid, setPixelGrid] = useState(false)
 	const [stats, setStats] = useState<SimulationStats>(EMPTY_STATS)
@@ -86,9 +86,8 @@ export function Simulator() {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null)
 	const rendererRef = useRef<Renderer | null>(null)
 	const simRef = useRef<Simulation | null>(null)
-	if (!simRef.current) {
-		simRef.current = new Simulation()
-	}
+
+	simRef.current ??= new Simulation()
 
 	const cameraRef = useRef<Camera>({ x: 0.5, y: 0.5, zoom: 1 })
 	const antialiasRef = useRef(true)
@@ -163,12 +162,14 @@ export function Simulator() {
 
 	// Read a shared world once, before the first frame is configured.
 	useEffect(() => {
-		const shared = readWorldFromLocation(window.location.search)
+		const shared = readStateFromLocation(window.location.search)
 
 		if (shared) {
 			sharedLoadedRef.current = true
-			setWorld(shared)
-			setSelectedId(shared.ants[0]?.id ?? null)
+			setWorld(shared.world)
+			setSelectedId(shared.world.ants[0]?.id ?? null)
+			ipfRef.current = shared.ipf
+			setIpf(shared.ipf)
 		}
 
 		setBooted(true)
@@ -181,37 +182,36 @@ export function Simulator() {
 		}
 
 		const signature = worldSignature(world)
-		if (lastSignatureRef.current === signature) {
-			return
-		}
-		lastSignatureRef.current = signature
+		if (lastSignatureRef.current !== signature) {
+			lastSignatureRef.current = signature
 
-		const sim = simRef.current
-		if (!sim) {
-			return
-		}
-
-		sim.resize(world.width, world.height)
-		sim.setAnts(world.ants)
-		clampCamera(cameraRef.current, canvasRef.current, sim.size_x, sim.size_y)
-
-		if (!seededRef.current) {
-			seededRef.current = true
-			if (!sharedLoadedRef.current) {
-				sim.update(SEED_ITERATIONS)
+			const sim = simRef.current
+			if (!sim) {
+				return
 			}
-		}
 
-		dirtyRef.current = true
-		refreshStats()
+			sim.resize(world.width, world.height)
+			sim.setAnts(world.ants)
+			clampCamera(cameraRef.current, canvasRef.current, sim.size_x, sim.size_y)
+
+			if (!seededRef.current) {
+				seededRef.current = true
+				if (!sharedLoadedRef.current) {
+					sim.update(SEED_ITERATIONS)
+				}
+			}
+
+			dirtyRef.current = true
+			refreshStats()
+		}
 
 		if (linkReadyRef.current) {
-			writeWorldToLocation(world)
+			writeStateToLocation({ world, ipf })
 		}
 		else {
 			linkReadyRef.current = true
 		}
-	}, [booted, world, refreshStats])
+	}, [booted, world, ipf, refreshStats])
 
 	// Build the WebGL renderer once the canvas exists.
 	useEffect(() => {
@@ -440,14 +440,23 @@ export function Simulator() {
 			return
 		}
 
-		void textureToPngBlob(sim.grid, sim.size_x, sim.size_y).then((blob) => {
+		void textureToPngBlob(sim.grid, sim.size_x, sim.size_y).then(blob => {
 			if (!blob) {
 				notify("Could not create the texture PNG")
 				return
 			}
 
+			let antString = ""
+
+			for (const ant of sim.templates) {
+				antString += stringifyStateMachine(ant.rules)
+
+				const direction = DIRECTION_TABLE.find(value => value.dx === ant.dx && value.dy === ant.dy)
+				antString += `_${direction?.dir}_`
+			}
+
 			const link = document.createElement("a")
-			link.download = `langtons-ant_texture_${sim.size_x}x${sim.size_y}_${sim.totalIterations}.png`
+			link.download = `langtons-ant_${antString}${sim.size_x}x${sim.size_y}_${sim.totalIterations}.png`
 			link.href = URL.createObjectURL(blob)
 			link.click()
 
@@ -457,9 +466,10 @@ export function Simulator() {
 	}, [notify])
 
 	const copyLink = useCallback(async () => {
+		writeStateToLocation({ world, ipf })
 		const copied = await copyText(window.location.href)
 		notify(copied ? "Link copied to clipboard" : "Could not copy — copy the URL from the address bar")
-	}, [notify])
+	}, [ipf, notify, world])
 
 	function updateAnt(patch: Partial<AntConfig>) {
 		if (!selectedId) {

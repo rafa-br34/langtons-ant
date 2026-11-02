@@ -1,6 +1,7 @@
 import { compressSync, decompressSync, strFromU8, strToU8 } from "fflate"
 
 import { type AntConfig, createAntId, createDefaultAnt, type DirectionValue, normalizeRules } from "./ant"
+import { DEFAULT_IPF, MAX_IPF } from "./simulation"
 import { clamp } from "./utils"
 
 export const MAX_GRID = 8192
@@ -9,6 +10,11 @@ export interface WorldConfig {
 	width: number
 	height: number
 	ants: AntConfig[]
+}
+
+export interface SharedState {
+	world: WorldConfig
+	ipf: number
 }
 
 interface SerializedAnt {
@@ -27,6 +33,7 @@ interface SerializedWorld {
 	width: number
 	height: number
 	ants: SerializedAnt[]
+	ipf?: number
 }
 
 export const DEFAULT_WORLD: WorldConfig = {
@@ -110,12 +117,25 @@ function parseWorld(value: unknown): WorldConfig | null {
 	return { width, height, ants }
 }
 
-export function serializeWorld(world: WorldConfig): string {
+function parseState(value: unknown): SharedState | null {
+	const world = parseWorld(value)
+	if (!world) {
+		return null
+	}
+
+	const record = value as Record<string, unknown>
+	const ipf = clamp(toInteger(record.ipf, DEFAULT_IPF), 1, MAX_IPF)
+
+	return { world, ipf }
+}
+
+export function serializeState(state: SharedState): string {
 	const payload: SerializedWorld = {
 		version: 2,
-		width: world.width,
-		height: world.height,
-		ants: world.ants.map(ant => ({
+		width: state.world.width,
+		height: state.world.height,
+		ipf: clamp(Math.round(state.ipf), 1, MAX_IPF),
+		ants: state.world.ants.map(ant => ({
 			x: ant.x,
 			y: ant.y,
 			dx: ant.dx,
@@ -137,29 +157,29 @@ export function serializeWorld(world: WorldConfig): string {
 	return encodeURIComponent(btoa(binary))
 }
 
-export function deserializeWorld(value: string): WorldConfig | null {
+export function deserializeState(value: string): SharedState | null {
 	try {
 		const binary = atob(decodeURIComponent(value))
 		const bytes = Uint8Array.from(binary, character => character.charCodeAt(0)) // NOSONAR typescript:S7758 (charCodeAt operates in the 0-255 range)
 		const parsed: unknown = JSON.parse(strFromU8(decompressSync(bytes)))
-		return parseWorld(parsed)
+		return parseState(parsed)
 	}
 	catch {
 		return null
 	}
 }
 
-export function readWorldFromLocation(search = window.location.search): WorldConfig | null {
+export function readStateFromLocation(search = window.location.search): SharedState | null {
 	const encoded = new URLSearchParams(search).get("v")
-	return encoded ? deserializeWorld(encoded) : null
+	return encoded ? deserializeState(encoded) : null
 }
 
-export function writeWorldToLocation(world: WorldConfig) {
+export function writeStateToLocation(state: SharedState) {
 	if (typeof window === "undefined") {
 		return
 	}
 
-	const encoded = serializeWorld(world)
+	const encoded = serializeState(state)
 	const url = `${window.location.pathname}?v=${encoded}${window.location.hash}`
 
 	if (url !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {

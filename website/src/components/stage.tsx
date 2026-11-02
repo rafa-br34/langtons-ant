@@ -66,7 +66,7 @@ export function Stage({
 			aria-labelledby="stage-title"
 			className="relative h-full min-h-0 overflow-hidden bg-black max-lg:h-[48dvh] max-lg:min-h-[300px]"
 		>
-			<h1 id="stage-title" className="sr-only">Langton&apos;s ant simulator</h1>
+			<h1 id="stage-title" className="sr-only">Langton's ant simulator</h1>
 
 			<canvas
 				ref={canvasRef}

@@ -1,3 +1,5 @@
+import { ArrowDown, ArrowDownLeft, ArrowDownRight, ArrowLeft, ArrowRight, ArrowUp, ArrowUpLeft, ArrowUpRight } from "lucide-react"
+
 export const DIRECTION = {
 	R45: 1,
 	R90: 2,
@@ -15,6 +17,18 @@ export const DIRECTION_VALUES: readonly DirectionValue[] = [1, 2, 3, -1, -2, -3,
 
 const DIRECTION_STRINGS = ["L135", "L", "L45", "C", "R45", "R", "R135", "U"] as const
 const DIRECTION_SET = new Set<number>(DIRECTION_VALUES)
+
+export const DIRECTION_TABLE = [
+	{ dx: -1, dy: -1, label: "North west", dir: "NW", icon: ArrowUpLeft, position: "col-start-1 row-start-1" },
+	{ dx: 0, dy: -1, label: "North", dir: "N", icon: ArrowUp, position: "col-start-2 row-start-1" },
+	{ dx: 1, dy: -1, label: "North east", dir: "NE", icon: ArrowUpRight, position: "col-start-3 row-start-1" },
+	{ dx: -1, dy: 0, label: "West", dir: "W", icon: ArrowLeft, position: "col-start-1 row-start-2" },
+	{ dx: 0, dy: 0, label: "Center", icon: null, dir: "00", position: "col-start-2 row-start-2" },
+	{ dx: 1, dy: 0, label: "East", dir: "E", icon: ArrowRight, position: "col-start-3 row-start-2" },
+	{ dx: -1, dy: 1, label: "South west", dir: "SW", icon: ArrowDownLeft, position: "col-start-1 row-start-3" },
+	{ dx: 0, dy: 1, label: "South", dir: "S", icon: ArrowDown, position: "col-start-2 row-start-3" },
+	{ dx: 1, dy: 1, label: "South east", dir: "SE", icon: ArrowDownRight, position: "col-start-3 row-start-3" },
+] as const
 
 export interface Vec2 {
 	x: number
@@ -64,7 +78,7 @@ export function parseStateMachine(input: string): ParsedStateMachine {
 	const rules: DirectionValue[] = []
 	let index = 0
 
-	while (index < source.length) {
+	while (index < source.length) { // NOSONAR typescript:S135
 		const character = source[index]
 
 		if (character === "R" || character === "L") {

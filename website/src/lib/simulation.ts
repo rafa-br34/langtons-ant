@@ -1,5 +1,6 @@
 import type { AntConfig, DirectionValue } from "./ant"
 
+export const DEFAULT_IPF = 10
 export const MAX_IPF = 10_000_000
 
 const DIRECTIONS_X = [0, 1, 1, 1, 0, -1, -1, -1] as const
