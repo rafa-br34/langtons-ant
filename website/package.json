@@ -1,6 +1,6 @@
 {
 	"name": "langtons-ant-website",
-	"version": "0.0.1",
+	"version": "0.0.6",
 	"private": true,
 	"description": "WebGL Langton's ant simulator",
 	"author": "rafa_br34",

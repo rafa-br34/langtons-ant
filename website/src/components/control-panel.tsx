@@ -402,7 +402,14 @@ export function ControlPanel({
 		>
 			<div className="flex shrink-0 items-center justify-between gap-2 border-b border-line px-3.5 py-3">
 				<div className="flex min-w-0 items-center gap-2.5">
-					<Image src={withBasePath("/favicon.png")} alt="Langton's ant demo" width={38} height={38} className="grid size-8 rounded-control border border-line" aria-hidden />
+					<Image
+						src={withBasePath("/favicon.png")}
+						alt="Langton's ant demo"
+						width={38}
+						height={38}
+						className="grid size-8 rounded-control border border-line"
+						aria-hidden
+					/>
 					<span className="min-w-0 block truncate text-sm leading-tight font-semibold tracking-tight text-fg">Langton's Ant</span>
 				</div>
 
