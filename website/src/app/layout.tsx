@@ -5,7 +5,7 @@ import "./globals.css"
 
 const rawBasePath = process.env.NEXT_PUBLIC_BASE_PATH?.trim() ?? ""
 const basePath = rawBasePath && rawBasePath !== "/" ? `/${rawBasePath.replace(/^\/+|\/+$/g, "")}` : ""
-const siteUrl = `https://rafa-br34.github.io${basePath || "/LangtonsAnt"}`
+const siteUrl = `https://rafa-br34.github.io${basePath || "/langtons-ant"}`
 
 export const metadata: Metadata = {
 	metadataBase: new URL("https://rafa-br34.github.io"),

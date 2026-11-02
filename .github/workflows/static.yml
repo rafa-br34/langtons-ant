@@ -41,8 +41,8 @@ jobs:
       - name: Build static export
         working-directory: website
         env:
-          # Project Pages URL: https://<user>.github.io/LangtonsAnt/
-          NEXT_PUBLIC_BASE_PATH: /LangtonsAnt
+          # Project Pages URL: https://<user>.github.io/langtons-ant/
+          NEXT_PUBLIC_BASE_PATH: /langtons-ant
           NEXT_TELEMETRY_DISABLED: "1"
         run: npm run build
 

@@ -7,7 +7,7 @@
 
 This repository contains a C++ and web implementation of the [Langton's ant](https://wikipedia.org/wiki/Langton's_ant) universal Turing machine.
 
-The web version can be found [here](https://rafa-br34.github.io/LangtonsAnt)
+The web version can be found [here](https://rafa-br34.github.io/langtons-ant)
 
 A curated [pattern gallery](GALLERY.md) is included.
 
@@ -30,7 +30,7 @@ A curated [pattern gallery](GALLERY.md) is included.
 
 # Implementation notes
 
-The TypeScript ([ant.ts](https://github.com/rafa-br34/LangtonsAnt/blob/master/website/src/lib/ant.ts)) version is basically a line by line rewrite of the C++ ([ant.h](https://github.com/rafa-br34/LangtonsAnt/blob/master/src/types/ant.h)) version (in the future this may change).  
+The TypeScript ([ant.ts](https://github.com/rafa-br34/langtons-ant/blob/master/website/src/lib/ant.ts)) version is basically a line by line rewrite of the C++ ([ant.h](https://github.com/rafa-br34/langtons-ant/blob/master/src/types/ant.h)) version (in the future this may change).  
 There's support for 8 possible operations, which are:
 
 - R45/L45
@@ -55,11 +55,11 @@ npm run build     # static export in website/out
 npm run typecheck
 ```
 
-For a GitHub Pages project site such as `https://rafa-br34.github.io/LangtonsAnt/`, build with the
+For a GitHub Pages project site such as `https://rafa-br34.github.io/langtons-ant/`, build with the
 repository name as the base path:
 
 ```bash
-NEXT_PUBLIC_BASE_PATH=/LangtonsAnt npm run build
+NEXT_PUBLIC_BASE_PATH=/langtons-ant npm run build
 ```
 
 The interface is a small lab bench:
@@ -91,8 +91,8 @@ The `langtons_ant_eval_cli.cpp` file on the other hand is a simple CLI that allo
 The following works for both Linux and Windows.
 
 ```bash
-git clone --recursive https://github.com/rafa-br34/LangtonsAnt.git
-cd LangtonsAnt
+git clone --recursive https://github.com/rafa-br34/langtons-ant.git
+cd langtons-ant
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release

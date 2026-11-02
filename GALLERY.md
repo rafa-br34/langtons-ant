@@ -36,5 +36,5 @@ FSM: `LLRR`
 Creates a prism.  
 Ants:
 
-- FSM: `RLRRLRRLRRLR`, Dir: `N`
-- FSM: `RLC`, Dir: `N`
+1. FSM: `RLRRLRRLRRLR`, Dir: `N`
+2. FSM: `RLC`, Dir: `N`

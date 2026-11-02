@@ -48,7 +48,7 @@ function AboutContent() {
 							machine is inherently limited to 256 possible opcodes. The{" "}
 							<a
 								className="text-fg underline decoration-line-strong underline-offset-2 hover:decoration-fg"
-								href="https://github.com/rafa-br34/LangtonsAnt"
+								href="https://github.com/rafa-br34/langtons-ant"
 								target="_blank"
 								rel="noopener"
 							>

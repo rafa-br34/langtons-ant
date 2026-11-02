@@ -23,13 +23,13 @@ The static site is written to `out/`.
 For GitHub Pages project sites, set the base path while building:
 
 ```bash
-NEXT_PUBLIC_BASE_PATH=/LangtonsAnt npm run build
+NEXT_PUBLIC_BASE_PATH=/langtons-ant npm run build
 ```
 
 PowerShell:
 
 ```powershell
-$env:NEXT_PUBLIC_BASE_PATH = "/LangtonsAnt"; npm run build
+$env:NEXT_PUBLIC_BASE_PATH = "/langtons-ant"; npm run build
 ```
 
 `NEXT_PUBLIC_BASE_PATH` is inlined into the client bundle so the shader files and `_next` assets resolve under the

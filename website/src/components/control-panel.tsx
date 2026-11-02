@@ -16,7 +16,7 @@ import { type AntConfig, DIRECTION, DIRECTION_TABLE, DIRECTION_VALUES, direction
 import { MAX_GRID, type WorldConfig } from "@/lib/share"
 import { MAX_IPF } from "@/lib/simulation"
 import type { SimulationStats } from "@/lib/stats"
-import { cn } from "@/lib/utils"
+import { cn, withBasePath } from "@/lib/utils"
 
 const SPEEDS = [1, 100, 10000, 100000] as const
 
@@ -402,14 +402,14 @@ export function ControlPanel({
 		>
 			<div className="flex shrink-0 items-center justify-between gap-2 border-b border-line px-3.5 py-3">
 				<div className="flex min-w-0 items-center gap-2.5">
-					<Image src="/favicon.png" alt="Langton's ant demo" width={38} height={38} className="grid size-8 rounded-control border border-line" aria-hidden />
+					<Image src={withBasePath("/favicon.png")} alt="Langton's ant demo" width={38} height={38} className="grid size-8 rounded-control border border-line" aria-hidden />
 					<span className="min-w-0 block truncate text-sm leading-tight font-semibold tracking-tight text-fg">Langton's Ant</span>
 				</div>
 
 				<div className="flex shrink-0 items-center gap-1">
 					<AboutDialog />
 					<a
-						href="https://github.com/rafa-br34/LangtonsAnt"
+						href="https://github.com/rafa-br34/langtons-ant"
 						target="_blank"
 						rel="noopener"
 						aria-label="View source on GitHub"

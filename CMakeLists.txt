@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(
-	LangtonsAnt
+	langtons-ant
 	DESCRIPTION "A simple project that simulates the Langton's ant universal Turing machine"
-	HOMEPAGE_URL "https://github.com/rafa-br34/LangtonsAnt"
+	HOMEPAGE_URL "https://github.com/rafa-br34/langtons-ant"
 	LANGUAGES CXX
 )
 
