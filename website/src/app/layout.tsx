@@ -10,7 +10,7 @@ const siteUrl = `https://rafa-br34.github.io${basePath || "/langtons-ant"}`
 export const metadata: Metadata = {
 	metadataBase: new URL("https://rafa-br34.github.io"),
 	title: "Langton's Ant",
-	description: "An interactive WebGL implementation of Langton's ant. Build state machines, pan and zoom the grid, and watch a universal Turing machine unfold.",
+	description: "An interactive WebGL implementation of Langton's ant.",
 	keywords: ["cellular automata", "langton's ant", "langtons ant", "turing machine", "webgl", "simulation"],
 	authors: [{ name: "rafa_br34", url: "https://rafa-br34.dev" }],
 	alternates: {
@@ -25,8 +25,8 @@ export const metadata: Metadata = {
 		siteName: "Langton's Ant",
 		locale: "en_US",
 		url: `${basePath}/`,
-		title: "Langton's Ant — Interactive Cellular Automata",
-		description: "An interactive WebGL implementation of Langton's ant. Build state machines, pan and zoom the grid, and watch a universal Turing machine unfold.",
+		title: "Langton's Ant",
+		description: "An interactive WebGL implementation of Langton's ant.",
 		images: [
 			{
 				url: `${siteUrl}/thumbnail.png`,
@@ -38,8 +38,8 @@ export const metadata: Metadata = {
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "Langton's Ant — Interactive Cellular Automata",
-		description: "An interactive WebGL implementation of Langton's ant. Build state machines, pan and zoom the grid.",
+		title: "Langton's Ant",
+		description: "An interactive WebGL implementation of Langton's ant.",
 		images: [`${siteUrl}/thumbnail.png`],
 	},
 	robots: {
@@ -82,6 +82,7 @@ export default function RootLayout({ children }: { readonly children: ReactNode 
 					type="application/ld+json"
 					dangerouslySetInnerHTML={{ __html: JSON.stringify(LINKED_DATA) }}
 				/>
+				<meta name="google-site-verification" content="U_CvKNobjC-HUXNAntX0YWravxQr8mEmxmuNCWze14Q" />
 			</head>
 			<body>{children}</body>
 		</html>
